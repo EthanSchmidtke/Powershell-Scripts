@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+' // ***************************************************************************
+' //
+' // File:      DeployWiz_Definition_ENU.wsf
+' //
+' // Version:   1.0.0000.0000
+' //
+' // Purpose:   Main Client Deployment Wizard Defintion File
+' //
+' // Author: 	Ethan "Your Mom" Schmidtke
+' //
+' // ***************************************************************************
+
+-->
+<Wizard>
+  <Global>
+    <CustomScript>DeployWiz_TargetDisk.vbs</CustomScript>
+  </Global>
+  <Pane id="SelectTargetDisk" title="Target Disk">
+    <Initialization><![CDATA[Disk_Initialization]]></Initialization>
+    <Body>
+		<![CDATA[
+
+			<H1>Select Windows installation disk</H1>
+			<table>
+
+				<td width="64px">
+					<img src="TargetHDD.png">
+				</td>
+
+				<td width="100%">
+					<p>Target disk: </br>
+						<SELECT NAME="TargetDisk" class=WideEdit language="vbscript" onchange="SetTargetDisk" >
+						</SELECT>
+					</p>
+			</table>
+		]]>
+	</Body>
+  </Pane>
+</Wizard>

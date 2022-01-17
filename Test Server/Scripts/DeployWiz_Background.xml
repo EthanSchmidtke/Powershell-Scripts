@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+' // ***************************************************************************
+' //
+' // File:      DeployWiz_Definition_ENU.wsf
+' //
+' // Version:   1.0.0000.0000
+' //
+' // Purpose:   Main Client Deployment Wizard Defintion File
+' //
+' // Author: 	Ethan "Your Mom" Schmidtke
+' //
+' // ***************************************************************************
+
+-->
+<Wizard>
+  <Global>
+    <CustomScript>DeployWiz_Background.vbs</CustomScript>
+  </Global>
+  <Pane id="SelectBackground" title="Set Default Background">
+    <Body>
+		<![CDATA[
+
+			<H1>Select a default background for this install</H1>
+			<div class=TreeList id=BackListBox style="height:250">
+				<p>
+					<INPUT TYPE=RADIO ID="Default" NAME="Background" VALUE="Default" CHECKED=Checked ONCLICK=SetBackground> Default
+				</p>
+				<p>
+					<INPUT TYPE=RADIO ID="Lotus" NAME="Background" VALUE="Lotus" ONCLICK=SetBackground> Lotus
+				</p>
+				<p>
+					<INPUT TYPE=RADIO ID="Model I" NAME="Background" VALUE="Model I" ONCLICK=SetBackground> Model I
+				</p>
+				<p>
+					<INPUT TYPE=RADIO ID="Model R" NAME="Background" VALUE="Model R" ONCLICK=SetBackground> Model R
+				</p>
+				<p>
+					<INPUT TYPE=RADIO ID="Model O" NAME="Background" VALUE="Model O" ONCLICK=SetBackground> Model O
+				</p>
+				<p>
+					<INPUT TYPE=RADIO ID="Model N" NAME="Background" VALUE="Model N" ONCLICK=SetBackground> Model N
+				</p>
+			</div>
+		]]>
+	</Body>
+  </Pane>
+</Wizard>

@@ -1,0 +1,1 @@
+"C:\Applications\Install\AMD_GPU\Setup.exe" -INSTALL -OUTPUT detail
