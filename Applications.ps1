@@ -15,12 +15,6 @@ Ethan P. Schmidtke
 
 .TO DO
 
-.MOTHERBOARDS
-GIGABYTE RGB Fusion
-ASRock Polychrome
-ASUS Armoury Crate
-MSI Center
-
 .GRAPHICS CARDS
 Precision X1
 PNY VelocityX
@@ -31,30 +25,14 @@ MSI Center
 
 .SOUND CARDS
 ASUS Xonar
-Sound BlasterX AE-5
 
 .COOLERS
 Wraith Prism
 iCUE
 
 .MISC
-Elgato
-NZXT CAM
 iRacing
-
-
-
-.DONE
-
-.MOTHERBOARDS
-
-.GRAPHICS CARDS
-
-.SOUND CARDS
-
-.COOLERS
-
-.MISC
+Corsair RAM
 
 #>
 
@@ -165,6 +143,69 @@ Get-Shortcut is used to put a shortcut for a Windows Store App on the desktop dy
 
 }
 
+function Get-GPU {
+<# 
+
+.DESCRIPTION
+Get-GPU is used to get the vendor of the installed GPU (Intel, AMD, or NVIDIA) as well as
+the model and manufacturer.
+
+#>
+    
+    $GPUs = [System.Collections.ArrayList]@(Get-PnpDevice -Class 'Display')
+
+    switch -wildcard ($GPUs.InstanceID) {
+        "*VEN_10DE*" {
+            Write-Host "NOTICE: NVIDIA GPU Detected. Checking for board partner."
+            switch -wildcard ($GPUs.InstanceID) {
+                "*1043*" {
+                    Write-Host "NOTICE: ASUS GPU Detected. Installing Armoury Crate."
+
+                    Break
+                }
+                "*3842*" {
+                    Write-Host "NOTICE: EVGA GPU Detected. Installing Precision X1."
+                
+                    Break
+                }
+                "*1462*" {
+                    Write-Host "NOTICE: MSI GPU Detected. Installing MSI Center."
+                
+                    Break
+                }
+                "**" {
+                    Write-Host "NOTICE: PNY GPU Detected. Installing VelocityX."
+                
+                    Break
+                }
+                "*19DA*" {
+                    Write-Host "NOTICE: ZOTAC GPU Detected. Installing Firestorm."
+                
+                    Break
+                }
+                Default {Write-Error "Unknown NVIDIA GPU Detected. Please resolve."; EXIT 0}
+            }
+        }
+        "*VEN_1002*" {
+            Write-Host "NOTICE: AMD GPU Detected. Checking for board partner."
+            switch -wildcard ($GPUs.InstanceID) {
+                "*1043*" {
+                    Write-Host "NOTICE: ASUS GPU Detected. Installing Armoury Crate."
+                
+                    Break
+                }
+                "*1DA2*" {
+                    Write-Host "NOTICE: SAPPHIRE GPU Detected. Installing TriXX."
+                
+                    Break
+                }
+                Default {Write-Error "Unknown AMD GPU Detected. Please resolve."; EXIT 0}
+            }
+        }
+        Default {Write-Error "$GPUs Was the detected GPU. Either one is not installed or this model is unknown. Figure it out."; EXIT 0}
+    }
+}
+
 <# 
 
 Checks the reported chassis of the system (Desktop/Laptop)
@@ -183,8 +224,8 @@ Get-ChassisType {
     }
 }
 
-$Mobo = Get-WmiObject -Class Win32_ComputerSystem | Select Manufacturer
-$Mobo2 = Get-WmiObject -Class Win32_BaseBoard | Select Manufacturer
+$Mobo = Get-WmiObject -Class Win32_ComputerSystem | Select-Object Manufacturer
+$Mobo2 = Get-WmiObject -Class Win32_BaseBoard | Select-Object Manufacturer
 
 switch -Wildcard ($Mobo,$Mobo2) {
     "*Micro-Star*" {
@@ -228,8 +269,6 @@ switch ($?) {
 }
 
 $devices = [System.Collections.ArrayList]@(Get-PnpDevice -InstanceId '*')
-
-
 
 switch -Wildcard ($devices.InstanceID) {
     #NZXT Smart Device V2
@@ -291,3 +330,5 @@ switch -Wildcard ($devices.InstanceID) {
         
     }
 }
+
+Get-GPU
