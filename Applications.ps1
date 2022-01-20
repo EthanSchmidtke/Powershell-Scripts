@@ -227,6 +227,7 @@ Get-ChassisType {
 $Mobo = Get-WmiObject -Class Win32_ComputerSystem | Select-Object Manufacturer
 $Mobo2 = Get-WmiObject -Class Win32_BaseBoard | Select-Object Manufacturer
 
+#Motherboards
 switch -Wildcard ($Mobo,$Mobo2) {
     "*Micro-Star*" {
         Write-Host "MSI Motherboard detected, installing MSI Center"
@@ -263,13 +264,18 @@ switch -Wildcard ($Mobo,$Mobo2) {
     }
 }
 
+#Motherboard validation
 switch ($?) {
     "True" {Write-Host "NOTICE: Motherboard software installed sucessfully (Probably), continuing"; Break}
     "False" {Write-Error "Motherboard software failed to install (I think). Please find out why and try again."; EXIT 0}
 }
 
+#GPUs
+Get-GPU
+
 $devices = [System.Collections.ArrayList]@(Get-PnpDevice -InstanceId '*')
 
+#Misc. system devices
 switch -Wildcard ($devices.InstanceID) {
     #NZXT Smart Device V2
     #HID-Compliant Vendor-Defined Device
@@ -330,5 +336,3 @@ switch -Wildcard ($devices.InstanceID) {
         
     }
 }
-
-Get-GPU
