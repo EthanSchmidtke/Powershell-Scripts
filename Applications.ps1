@@ -11,31 +11,6 @@ Ethan P. Schmidtke
 
 #>
 
-<#
-
-.TO DO
-
-.GRAPHICS CARDS
-Precision X1
-PNY VelocityX
-Sapphire TRIXX
-ZOTAC FireStorm
-ASUS Armoury Crate
-MSI Center
-
-.SOUND CARDS
-ASUS Xonar
-
-.COOLERS
-Wraith Prism
-iCUE
-
-.MISC
-iRacing
-Corsair RAM
-
-#>
-
 #Gather MDT variable(s)
 $TSEnv = New-Object -ComObject Microsoft.SMS.TSEnvironment
 $DeployRoot = $TSEnv.Value("DeployRoot")
@@ -155,92 +130,162 @@ the model and manufacturer.
     $GPUs = [System.Collections.ArrayList]@(Get-PnpDevice -Class 'Display')
 
     switch -wildcard ($GPUs.InstanceID) {
+        #NVIDIA GPU ID
         "*VEN_10DE*" {
-            Write-Host "NOTICE: NVIDIA GPU Detected. Checking for board partner."
+            Write-Host "NOTICE: NVIDIA GPU Detected. Checking for board partner and installing latest driver."
+
+            #Chassis Detection For GPU Driver
+            switch ($chassisType) {
+                "Desktop" {
+                    Write-Host "NOTICE: $chassisType chassis detected. Installing NVIDIA desktop drivers."
+                    & '$DeployRoot\Applications\Software\GPU NVIDIA Desktop\NVIDIA.exe' -s -clean -noreboot -passive -noeula -nofinish
+                }
+                "Laptop" {
+                    Write-Host "NOTICE: $chassisType chassis detected. Installing NVIDIA laptop drivers."
+                    & '$DeployRoot\Applications\Software\GPU NVIDIA Laptop\NVIDIA.exe' -s -clean -noreboot -passive -noeula -nofinish
+                }
+                Default {Write-Error "Yo, this system isn't a desktop or laptop. What is $chassisType and why is it being reported as one?"; EXIT 0}
+            }
+
+            #GPU Board Partner Detection
             switch -wildcard ($GPUs.InstanceID) {
+                #ASUS ID
                 "*1043*" {
                     Write-Host "NOTICE: ASUS GPU Detected. Installing Armoury Crate."
-
+                    & '$DeployRoot\Applications\Software\ASUS Armoury Crate.exe' -Silent
+                    $Path = "B9ECED6F.ArmouryCrate_qmba6cd70vzyy"
+                    $AppID = "App"
+                    $Name = "Armoury Crate.lnk"
+                    Get-Shortcut
+                    $Path = "B9ECED6F.AURACreator_qmba6cd70vzyy"
+                    $AppID = "App"
+                    $Name = "Aura Creator.lnk"
+                    Get-Shortcut
                     Break
                 }
+                #EVGA ID
                 "*3842*" {
                     Write-Host "NOTICE: EVGA GPU Detected. Installing Precision X1."
-                
+                    & '$DeployRoot\Applications\Software\EVGA Precision X1.exe' /S
                     Break
                 }
+                #MSI ID
                 "*1462*" {
                     Write-Host "NOTICE: MSI GPU Detected. Installing MSI Center."
-                
+                    & '$DeployRoot\Applications\Software\MSI Center.exe' /Silent
+                    $Path = "9426MICRO-STARINTERNATION.MSICenter_kzh8wxbdkxb8p"
+                    $AppID = "App"
+                    $Name = "MSI Center.lnk"
+                    Get-Shortcut
                     Break
                 }
-                "**" {
+                #PNY ID
+                "*196E*" {
                     Write-Host "NOTICE: PNY GPU Detected. Installing VelocityX."
-                
+                    & '$DeployRoot\Applications\Software\PNY VelocityX.exe' /SILENT /NORESTART
+                    New-Item -ItemType SymbolicLink -Path "C:\Users\$ENV:Username\Desktop\VelocityX.lnk" -Target "C:\Program Files\VelocityX\VelocityX.exe"
                     Break
                 }
+                #ZOTAC ID
                 "*19DA*" {
                     Write-Host "NOTICE: ZOTAC GPU Detected. Installing Firestorm."
-                
+                    & '$DeployRoot\Applications\Software\ZOTAC Firestorm.exe' /SILENT /NORESTART
                     Break
                 }
+
                 Default {Write-Error "Unknown NVIDIA GPU Detected. Please resolve."; EXIT 0}
+
             }
         }
+
+        #AMD GPU ID
         "*VEN_1002*" {
-            Write-Host "NOTICE: AMD GPU Detected. Checking for board partner."
+            
+            #GPU Driver
+            Write-Host "NOTICE: AMD GPU Detected. Checking for board partner and installing latest driver."
+            & '$DeployRoot\Applications\Software\GPU AMD\Setup.exe' -INSTALL -OUTPUT detail
+            New-Item -ItemType SymbolicLink -Path "C:\Users\$ENV:Username\Desktop\Radeon Software.lnk" -Target "C:\Program Files\AMD\CNext\CNext\RadeonSoftware.exe"
+            
+            #GPU Board Partner Detection
             switch -wildcard ($GPUs.InstanceID) {
+                #ASUS ID
                 "*1043*" {
                     Write-Host "NOTICE: ASUS GPU Detected. Installing Armoury Crate."
-                
+                    & '$DeployRoot\Applications\ASUS Armoury Crate.exe' -Silent
+                    $Path = "B9ECED6F.ArmouryCrate_qmba6cd70vzyy"
+                    $AppID = "App"
+                    $Name = "Armoury Crate.lnk"
+                    Get-Shortcut
+                    $Path = "B9ECED6F.AURACreator_qmba6cd70vzyy"
+                    $AppID = "App"
+                    $Name = "Aura Creator.lnk"
+                    Get-Shortcut
                     Break
                 }
+                #SAPPHIRE ID
                 "*1DA2*" {
                     Write-Host "NOTICE: SAPPHIRE GPU Detected. Installing TriXX."
-                
+                    & '$DeployRoot\Applications\Software\SAPPHIRE TRIXX.exe' /SILENT /NORESTART
+                    Copy-Item "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Sapphire TRIXX.lnk" -Destination "C:\Users\$ENV:Username\Desktop\TRiXX.lnk"
                     Break
                 }
                 Default {Write-Error "Unknown AMD GPU Detected. Please resolve."; EXIT 0}
             }
         }
+
         Default {Write-Error "$GPUs Was the detected GPU. Either one is not installed or this model is unknown. Figure it out."; EXIT 0}
+
     }
 }
 
+Get-ChassisType {
 <# 
 
-Checks the reported chassis of the system (Desktop/Laptop)
+.DESCRIPTION Checks the reported chassis of the system (Desktop/Laptop)
 If the system is a laptop, it will install the laptop software and exit
 If the system is a desktop the rest of the script will run, installing all necessary software
 
 #>
-Get-ChassisType {
     switch ($chassisType) {
-        "Desktop" {Write-Host "NOTICE: System is a desktop, checking what software to install"; Break}
-        "Laptop" {Write-Host "NOTICE: System is a laptop, installing software"; "NEED TO MAKE THIS INSTALL THE LAPTOP RGB SOFTWARE"; EXIT}
+        
+        "Desktop" {Write-Host "NOTICE: System is a desktop, checking what software to install."; Break}
+        "Laptop" {
+            Write-Host "NOTICE: System is a laptop, installing Intel NUC software."
+            winget install --id 9NT0ZDV64HTC --silent --force --accept-package-agreements --accept-source-agreements
+            EXIT
+        }
+        
         Default {
             Write-Error "What the McFuck is the chassis type $chassisType"
             EXIT 0
         }
+
     }
 }
 
+#Good chance the first $Mobo variable is not needed as every board I am aware of reports
+#its brand under Win32_BaseBoard Manufacturer. Need to test this theory to be sure.
 $Mobo = Get-WmiObject -Class Win32_ComputerSystem | Select-Object Manufacturer
 $Mobo2 = Get-WmiObject -Class Win32_BaseBoard | Select-Object Manufacturer
 
 #Motherboards
 switch -Wildcard ($Mobo,$Mobo2) {
+    
+    #MSI Motherboard
     "*Micro-Star*" {
-        Write-Host "MSI Motherboard detected, installing MSI Center"
-         & '$DeployRoot\Applications\Extra Software\Motherboards\MSI - MSI Center (1.0.36.0).exe' /Silent
+        Write-Host "NOTICE: MSI Motherboard detected, installing MSI Center."
+         & '$DeployRoot\Applications\Software\MSI Center.exe' /Silent
          $Path = "9426MICRO-STARINTERNATION.MSICenter_kzh8wxbdkxb8p"
          $AppID = "App"
          $Name = "MSI Center.lnk"
          Get-Shortcut
         Break
     }
+
+    #ASUS Motherboard
     "*ASUS*" {
-        Write-Host "ASUS Motherboard detected, installing Armoury Crate"
-         & '$DeployRoot\Applications\Extra Software\Motherboards\ASUS - Armoury Crate (3.0.11.0).exe' -Silent
+        Write-Host "NOTICE: ASUS Motherboard detected, installing Armoury Crate"
+         & '$DeployRoot\Applications\Software\ASUS Armoury Crate.exe' -Silent
          $Path = "B9ECED6F.ArmouryCrate_qmba6cd70vzyy"
          $AppID = "App"
          $Name = "Armoury Crate.lnk"
@@ -251,88 +296,118 @@ switch -Wildcard ($Mobo,$Mobo2) {
          Get-Shortcut
         Break
     }
+
+    #ASRock Motherboard
     "*ASRock*" {
-        Write-Host "ASRock Motherboard detected, installing Polychrome RGB Sync"
-         & '$DeployRoot\Applications\Extra Software\Motherboards\ASRock - Polychrome RGB (2.0.100).exe' /SILENT /NORESTART
+        Write-Host "NOTICE: ASRock Motherboard detected, installing Polychrome RGB Sync."
+         & '$DeployRoot\Applications\Software\ASRock Polychrome RGB.exe' /SILENT /NORESTART
          Rename-Item -Path "C:\Users\$ENV:USERNAME\Desktop\ASRRGBLED.lnk" -NewName "ASRock RGB.lnk"
         Break
     }
+
+    #GIGABYTE Motherboard
     "*GIGABYTE*" {
-        Write-Host "GIGABYTE Motherboard detected, installing RGB Fusion"
-         & '$DeployRoot\Applications\Extra Software\Motherboards\GIGABYTE - RGB Fusion (B21.0401.1)\setup.exe' /S /v/qn
+        Write-Host "NOTICE: GIGABYTE Motherboard detected, installing RGB Fusion."
+         & '$DeployRoot\Applications\Software\GIGABYTE RGB Fusion\setup.exe' /S /v/qn
         Break
     }
-}
-
-#Motherboard validation
-switch ($?) {
-    "True" {Write-Host "NOTICE: Motherboard software installed sucessfully (Probably), continuing"; Break}
-    "False" {Write-Error "Motherboard software failed to install (I think). Please find out why and try again."; EXIT 0}
 }
 
 #GPUs
 Get-GPU
 
+#Check for Corsair RAM - No better way to detect it right now
+$RAM = Get-WMIObject Win32_PhysicalMemory | Format-Table Manufacturer
+
+switch ($RAM) {
+
+    "Corsair" {
+        Write-Host "NOTICE: Corsair RAM detected. We currently only sell RGB Corsair RAM, so Corsair iCUE is being installed."
+         & '$DeployRoot\Applications\Software\iCUE.msi' /QUIET
+         Copy-Item 'C:\ProgramData\Microsoft\Windows\Start Menu\Corsair\iCUE.lnk' -Destination 'C:\Users\$ENV:Username\Desktop'
+         Break
+    }
+
+    Default {Write-Host "NOTICE: Non-Corsair RAM detected. Skipping iCUE...for now."; Break}
+
+}
+
+#Detects all installed system devices (drivers) and pipes them into a variable
 $devices = [System.Collections.ArrayList]@(Get-PnpDevice -InstanceId '*')
 
 #Misc. system devices
 switch -Wildcard ($devices.InstanceID) {
+
     #NZXT Smart Device V2
     #HID-Compliant Vendor-Defined Device
     "*VID_1E71&PID_2006&REV_0200*" {
         Write-Host "NOTICE: Detected NZXT Smart Device V2. Installing NZXT CAM."
-         & '$DeployRoot\Applications\Extra Software\NZXT - CAM.exe'
+         & '$DeployRoot\Applications\Software\NZXT CAM.exe'
     }
 
     #Corsair H100i
     #HID-Compliant Vendor-Defined Device
     "*VID_1B1C&PID_0C20&REV_0100*" {
         Write-Host "NOTICE: Detected Corsair H100i. Installing Corsair iCUE."
-         & '$DeployRoot\Applications\Extra Software\Coolers\Corsair - iCUE (4.14.179).msi' /PASSIVE /NORESTART
+         & '$DeployRoot\Applications\Software\iCUE.msi' /QUIET
+         Copy-Item 'C:\ProgramData\Microsoft\Windows\Start Menu\Corsair\iCUE.lnk' -Destination 'C:\Users\$ENV:Username\Desktop'
     }
 
     #Elgato HD60 Pro
     #Sound, Video, and Game Controllers
     "*VEN_12AB&DEV_0380&SUBSYS_00061CFA&REV_00*" {
         Write-Host "NOTICE: Detected Elgato HD60 Pro. Installing Elgato software."
-         & '$DeployRoot\Applications\Extra Software\4KCaptureUtility_1.7.4.4808_x64.msi' /PASSIVE /NORESTART
-         & '$DeployRoot\Applications\Extra Software\GameCaptureSetup_3.70.51.3051_x64.msi' /PASSIVE /NORESTART
+         & '$DeployRoot\Applications\Software\Elgato HD60Pro\4KCaptureUtility.msi' /PASSIVE /NORESTART
+         & '$DeployRoot\Applications\Software\Elgato HD60Pro\GameCaptureSetup.msi' /PASSIVE /NORESTART
     }
 
     #Sound BlasterX AE-5 Plus
     #Sound, Video, and Game Controllers
     "*VEN_1102&DEV_0011&SUBSYS_1102019REV_1009*" {
         Write-Host "NOTICE: Detected Sound BlasterX AE-5 Plus. Installing Sound Blaster audio software."
-         & '$DeployRoot\Applications\Extra Software\Sound Cards\Sound BlasterX AE-5 (3.4.92.00).exe' /SILENT /NORESTART
+         & '$DeployRoot\Applications\Software\Sound BlasterX.exe' /SILENT /NORESTART
     }
 
-    #
-    #
-    "**" {
-        
+    #Wraith Prism
+    #USB Composite Device
+    "*VID_2516&PID_0051*" {
+        Write-Host "NOTICE: Detected Wraith Prism cooler. Installing Cooler Master RGB software."
+         Copy-Item '$DeployRoot\Applications\Software\Wraith Prism' -Destination 'C:\Program Files (x86)'
+         Move-Item 'C:\Program Files (x86)\Wraith Prism\Wraith Prism.lnk' -Destination 'C:\Users\$ENV:Username\Desktop'
+    }
+    
+    Default {
+        Write-Host "NOTICE: No RGB devices detected in the system. Proceeding with Windows install."
+        Write-Error "Recorded system devices:"
+        Write-Host "$devices"
+        Write-Error "End of list."    
+        Break
     }
 
-    #
-    #
-    "**" {
-        
+}
+
+#iRacing Installation
+switch -Wildcard ($ENV:Computername) {
+
+    #Uses the computers name to detect if iRacing software is needed or not
+    "*-iRacing*" {
+        Write-Host "NOTICE: Computer name includes iRacing. Will now install all required iRacing files."
+        & '$DeployRoot\Applications\Software\iRacing\Driver.exe' /S /v/qn
+        & '$DeployRoot\Applications\Software\iRacing\vc2012_redist_x64.exe' /install /passive /norestart
+        & '$DeployRoot\Applications\Software\iRacing\vc2012_redist_x86.exe' /install /passive /norestart
+        & '$DeployRoot\Applications\Software\iRacing\vc2013_redist_x64.exe' /install /passive /norestart
+        & '$DeployRoot\Applications\Software\iRacing\vc2013_redist_x86.exe' /install /passive /norestart
+        & '$DeployRoot\Applications\Software\iRacing\vc2015_redist_x64.exe' /install /passive /norestart
+        & '$DeployRoot\Applications\Software\iRacing\vc2015_redist_x86.exe' /install /passive /norestart
+        & '$DeployRoot\Applications\Software\iRacing\vc2017_redist_x64.exe' /install /passive /norestart
+        & '$DeployRoot\Applications\Software\iRacing\vc2017_redist_x86.exe' /install /passive /norestart
+        Enable-WindowsOptionalFeature -NoRestart -Online -FeatureName "NetFx3"
+        Copy-Item "$DeployRoot\Applications\Software\iRacing\EasyAntiCheat" -Destination "C:\Program Files (x86)"
+        Copy-Item "$DeployRoot\Applications\Software\iRacing\iRacing" -Destination "C:\Program Files (x86)"
+        Copy-Item "$DeployRoot\Applications\Software\iRacing\Shortcuts\*" -Destination "C:\Users\$ENV:Username\Desktop"
+        Break
     }
 
-    #
-    #
-    "**" {
-        
-    }
+    Default {Write-Host "NOTICE: This computer does not contain 'iRacing' in the name. Skipping software install."; Break}
 
-    #
-    #
-    "**" {
-        
-    }
-
-    #
-    #
-    "**" {
-        
-    }
 }
