@@ -1,0 +1,7 @@
+$i = 0
+:loop
+$var[$i] | add-content (
+
+)
+$i++
+goto:loop
