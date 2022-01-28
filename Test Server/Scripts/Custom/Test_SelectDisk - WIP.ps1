@@ -98,9 +98,16 @@ function Select-Disk {
 
 $arrayMaster.Type | ForEach-Object {
 
+    if ($_ -contains "SSD") {
 
+        Write-Host "Yup"
+
+    }
 
 }
+
+
+
     if ($arrayMaster.Type -contains "NVMe") {
         
     } elseif ($arrayMaster.Type -contains "SSD") {
