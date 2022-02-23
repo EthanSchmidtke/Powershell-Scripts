@@ -20,7 +20,7 @@ $logFile = "$logPath\$($myInvocation.MyCommand).log"
 Start-Transcript -Path "$logFile"
 Write-Host "Logging to $logFile"
 
-function Get-ChassisType {
+Function Get-ChassisType {
 <#
 
 .DESCRIPTION
@@ -61,7 +61,7 @@ Detachable (32)
 
     $chassisType = (Get-WmiObject -Class Win32_ComputerSystem).PCSystemType
     
-    switch(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,30,31,32) {
+    Switch (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,30,31,32) {
         "1" {Write-Host "NOTICE: Chassis type 'Other' detected"; $chassisType = "Other"; Break}
         "2" {Write-Host "NOTICE: Chassis type 'Unknown' detected"; $chassisType = "Unknown"; Break}
         "3" {Write-Host "NOTICE: Chassis type 'Desktop' detected"; $chassisType = "Desktop"; Break}
@@ -93,7 +93,7 @@ Detachable (32)
 
 }
 
-function Get-Shortcut {
+Function Get-Shortcut {
 <# 
 
 .DESCRIPTION
@@ -123,7 +123,7 @@ Get-Shortcut is used to put a shortcut for a Windows Store App on the desktop dy
 
 }
 
-function Start-Install {
+Function Start-Install {
 <# 
 
 .DESCRIPTION
@@ -132,24 +132,24 @@ help clean up the code for the script.
 
 #>
 
-Try {
+    Try {
 
-    Start-Process "$InstallLocation" -ArgumentList "$Arguments" -Wait
+        Start-Process "$InstallLocation" -ArgumentList "$Arguments" -Wait
 
-} Catch {
+    } Catch {
 
-    #Catch will pick up any non zero error code returned. You can do anything you like in this block to deal with the error, examples below:
-    #$_ returns the error details. This will just write the error.
-    Write-Host "$ApplicationName returned the following error $_"
+        #Catch will pick up any non zero error code returned. You can do anything you like in this block to deal with the error, examples below:
+        #$_ returns the error details. This will just write the error.
+        Write-Host "$ApplicationName returned the following error $_"
 
-    #If you want to pass the error upwards as a system error and abort your powershell script or function
-    Throw "Aborted $ApplicationName returned $_"
+        #If you want to pass the error upwards as a system error and abort your powershell script or function
+        Throw "Aborted $ApplicationName returned $_"
+
+    }
 
 }
 
-}
-
-function Get-GPU {
+Function Get-GPU {
 <# 
 
 .DESCRIPTION
@@ -160,7 +160,7 @@ the model and manufacturer.
     
     $GPUs = [System.Collections.ArrayList]@(Get-PnpDevice -Class 'Display')
 
-    Switch -wildcard ($GPUs.InstanceID) {
+    Switch -Wildcard ($GPUs.InstanceID) {
 
         #Integrated GPU
         "*&0&*" {
@@ -175,7 +175,7 @@ the model and manufacturer.
             Write-Host "NOTICE: NVIDIA GPU Detected. Checking for board partner and installing software."
 
             #GPU Board Partner Detection
-            switch -wildcard ($GPUs.InstanceID) {
+            Switch -Wildcard ($GPUs.InstanceID) {
 
                 #ASUS ID
                 "*1043*" {
@@ -332,7 +332,7 @@ the model and manufacturer.
         "*VEN_1002**&1&*" {
 
             #GPU Board Partner Detection
-            switch -wildcard ($GPUs.InstanceID) {
+            Switch -Wildcard ($GPUs.InstanceID) {
             
                 #ASUS ID
                 "*1043*" {
@@ -441,7 +441,7 @@ If the system is a desktop the rest of the script will run, installing all neces
 
 #>
 
-    switch ($chassisType) {
+    Switch ($chassisType) {
         
         "Desktop" {
         
@@ -460,7 +460,7 @@ If the system is a desktop the rest of the script will run, installing all neces
         "Laptop" {
 
             Write-Host "NOTICE: System is a laptop, installing Intel NUC software."
-            winget install --id 9NT0ZDV64HTC --silent --force --accept-package-agreements --accept-source-agreements
+            WINGET Install --ID 9NT0ZDV64HTC --Silent --Force --Accept-Package-Agreements --Accept-Source-Agreements
             EXIT
 
         }
@@ -481,7 +481,7 @@ If the system is a desktop the rest of the script will run, installing all neces
 $Mobo = Get-WmiObject -Class Win32_BaseBoard | Select-Object Manufacturer
 
 #Motherboards
-switch -Wildcard ($Mobo) {
+Switch -Wildcard ($Mobo) {
     
     #MSI Motherboard
     "*Micro-Star*" {
@@ -663,10 +663,10 @@ Switch -Wildcard ($devices.InstanceID) {
 
     }
     
-    #Unable to use the 'Default' variable. It gets triggered anytime one of the values being checked in
+    <#Unable to use the 'Default' variable. It gets triggered anytime one of the values being checked in
     #the switch statement are false. This means if the first device checked is not in the list, it goes
     #to default. Need to make something that checks if the switch statement did anything after it executes.
-    <#Default {
+    Default {
 
         Write-Host "NOTICE: No RGB devices detected in the system. Proceeding with Windows install."
         Write-Host "Recorded system devices:"
@@ -679,7 +679,7 @@ Switch -Wildcard ($devices.InstanceID) {
 }
 
 #iRacing Installation
-switch -Wildcard ($ENV:Computername) {
+Switch -Wildcard ($ENV:Computername) {
 
     #Uses the computers name to detect if iRacing software is needed or not
     "*-iRacing*" {
