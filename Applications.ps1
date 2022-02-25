@@ -252,7 +252,7 @@ the model and manufacturer.
                             While (!(Test-Path "C:\Program Files\ASUS\ARMOURY CRATE Lite Service" -ErrorAction SilentlyContinue)) {
                         
                                 Write-Host "Armoury Crate still installing. Checking again in 1 minute."
-                                Start-Sleep -Minutes 1
+                                Start-Sleep -seconds 60
                         
                             }
 
@@ -532,7 +532,7 @@ the model and manufacturer.
                             While (!(Test-Path "C:\Program Files\ASUS\ARMOURY CRATE Lite Service" -ErrorAction SilentlyContinue)) {
                         
                                 Write-Host "Armoury Crate still installing. Checking again in 1 minute."
-                                Start-Sleep -Minutes 1
+                                Start-Sleep -seconds 60
                         
                             }
 
@@ -640,7 +640,7 @@ Switch -Wildcard ($Mobo) {
         While (!(Test-Path "C:\Program Files\ASUS\ARMOURY CRATE Lite Service" -ErrorAction SilentlyContinue)) {
                         
             Write-Host "Armoury Crate still installing. Checking again in 1 minute."
-            Start-Sleep -Minutes
+            Start-Sleep -seconds 60
                         
         }
 
