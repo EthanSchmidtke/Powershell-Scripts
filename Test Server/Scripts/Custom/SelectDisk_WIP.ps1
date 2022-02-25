@@ -27,7 +27,7 @@ Write-Host "Logging to $logFile"
 [System.Collections.ArrayList]$arrayDiskType = Get-PhysicalDisk | Select-Object MediaType,FriendlyName
 [System.Collections.ArrayList]$arrayMaster = @()
 
-function Convert-Type {
+Function Convert-Type {
 #Converts NVMe Media Type from 'SSD' to 'NVMe'
     
     $i = 0
@@ -41,7 +41,7 @@ function Convert-Type {
     
 }
 
-function Find-USB {
+Function Find-USB {
 #Checks if any available disks are USB drives, removing them from the array
     
     $i = 0
@@ -65,7 +65,7 @@ function Find-USB {
     }
 }
 
-function Set-MasterArray {
+Function Set-MasterArray {
 #Creates the master array which contains all of the disks in the system
 
     $i = 0
@@ -88,14 +88,56 @@ function Set-MasterArray {
 
 }
 
-function Select-Disk {
+Function Select-Disk {
 #Selects the disk to install Windows to and sets the variable for MDT
 
     $totalNVMe = ($arrayMaster.Type -eq "NVMe").Count
     Write-Host "Detected ($totalNVMe) NVMe drives."
 
-    if ($totalNVMe -gt 0) {
-        
+    
+
+    switch ($totalNVMe) {
+
+        "0" {
+
+            Break
+
+        }
+
+        "1" {
+
+            $i = 0
+            $count = $arrayMaster.Count - 1
+    
+            0..$count | ForEach-Object {
+
+            Write-Host $i
+            Write-Host $arrayMaster[$i]
+            $i++
+
+            }
+
+            $TSenv.Value("TargetDisk") = 
+
+        }
+
+        "2" {
+
+
+
+        }
+
+        Default {
+
+            if ($totalNVMe -gt "2") {
+
+                Write-Host "3+ NVMe drives detected. Grab Ethan to resolve."
+                EXIT 0
+                
+            }
+
+        }
+
     }
 
     $totalSSD = ($arrayMaster.Type -eq "SSD").Count
@@ -118,5 +160,3 @@ function Select-Disk {
     }
     
 }
-
-$arrayMaster -eq 0
