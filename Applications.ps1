@@ -25,6 +25,8 @@ Function Get-ChassisType {
 
 .DESCRIPTION
 Get-ChassisType is used to determine whether or not the computer is a laptop or a desktop.
+If the system is a laptop, it will install the laptop software and exit
+If the system is a desktop the rest of the script will run, installing all necessary software
 
 https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/win32-systemenclosure?redirectedfrom=MSDN
 Available values for chassis type:
@@ -61,34 +63,53 @@ Detachable (32)
 
     $chassisType = (Get-WmiObject -Class Win32_ComputerSystem).PCSystemType
     
-    Switch (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,30,31,32) {
-        "1" {Write-Host "NOTICE: Chassis type 'Other' detected"; $chassisType = "Other"; Break}
-        "2" {Write-Host "NOTICE: Chassis type 'Unknown' detected"; $chassisType = "Unknown"; Break}
-        "3" {Write-Host "NOTICE: Chassis type 'Desktop' detected"; $chassisType = "Desktop"; Break}
-        "4" {Write-Host "NOTICE: Chassis type 'Low Profile Desktop' detected"; $chassisType = "Low Profile Desktop"; Break}
-        "5" {Write-Host "NOTICE: Chassis type 'Pizza Box' detected"; $chassisType = "Pizza Box"; Break}
-        "6" {Write-Host "NOTICE: Chassis type 'Mini Tower' detected"; $chassisType = "Mini Tower"; Break}
-        "7" {Write-Host "NOTICE: Chassis type 'Tower' detected"; $chassisType = "Tower"; Break}
-        "8" {Write-Host "NOTICE: Chassis type 'Portable' detected"; $chassisType = "Portable"; Break}
-        "9" {Write-Host "NOTICE: Chassis type 'Laptop' detected"; $chassisType = "Laptop"; Break}
-        "10" {Write-Host "NOTICE: Chassis type 'Notebook' detected"; $chassisType = "Notebook"; Break}
-        "11" {Write-Host "NOTICE: Chassis type 'Hand Held' detected"; $chassisType = "Hand Held"; Break}
-        "12" {Write-Host "NOTICE: Chassis type 'Docking Station' detected"; $chassisType = "Docking Station"; Break}
-        "13" {Write-Host "NOTICE: Chassis type 'All in One' detected"; $chassisType = "All in One"; Break}
-        "14" {Write-Host "NOTICE: Chassis type 'Sub Notebook' detected"; $chassisType = "Sub Notebook"; Break}
-        "15" {Write-Host "NOTICE: Chassis type 'Space-Saving' detected"; $chassisType = "Space-Saving"; Break}
-        "16" {Write-Host "NOTICE: Chassis type 'Lunch Box' detected"; $chassisType = "Lunch Box"; Break}
-        "17" {Write-Host "NOTICE: Chassis type 'Main System Chassis' detected"; $chassisType = "Main System Chassis"; Break}
-        "18" {Write-Host "NOTICE: Chassis type 'Expansion Chassis' detected"; $chassisType = "Expansion Chassis"; Break}
-        "19" {Write-Host "NOTICE: Chassis type 'SubChassis' detected"; $chassisType = "SubChassis"; Break}
-        "20" {Write-Host "NOTICE: Chassis type 'Bus Expansion Chassis' detected"; $chassisType = "Bus Expansion Chassis"; Break}
-        "21" {Write-Host "NOTICE: Chassis type 'Peripheral Chassis' detected"; $chassisType = "Peripheral Chassis"; Break}
-        "22" {Write-Host "NOTICE: Chassis type 'Storage Chassis' detected"; $chassisType = "Storage Chassis"; Break}
-        "23" {Write-Host "NOTICE: Chassis type 'Rack Mount Chassis' detected"; $chassisType = "Rack Mount Chassis"; Break}
-        "24" {Write-Host "NOTICE: Chassis type 'Sealed-Case PC' detected"; $chassisType = "Sealed-Case PC"; Break}
-        "30" {Write-Host "NOTICE: Chassis type 'Tablet' detected"; $chassisType = "Tablet"; Break}
-        "31" {Write-Host "NOTICE: Chassis type 'Convertible' detected"; $chassisType = "Convertible"; Break}
-        "32" {Write-Host "NOTICE: Chassis type 'Detachable' detected"; $chassisType = "Detachable"; Break}
+    Switch ($chassisType) {
+
+        "1" {
+        
+            Write-Host "NOTICE: Chassis type 'Other' detected"
+            Write-Host "NOTICE: System is a desktop, checking what software to install."
+            Break
+            
+        }
+
+        "2" {
+        
+            Write-Host "NOTICE: Chassis type 'Unknown' detected"
+            Write-Host "NOTICE: System is a laptop, installing Intel NUC software."
+            WINGET Install --ID 9NT0ZDV64HTC --Silent --Force --Accept-Package-Agreements --Accept-Source-Agreements
+
+
+            Get-Shortcut
+
+            EXIT
+            
+        }
+
+        "3" {
+        
+            Write-Host "NOTICE: Chassis type 'Desktop' detected"
+            Write-Host "NOTICE: System is a desktop, checking what software to install."
+            Break
+        
+        }
+
+        "9" {
+        
+            Write-Host "NOTICE: Chassis type 'Laptop' detected"
+            Write-Host "NOTICE: System is a laptop, installing Intel NUC software."
+            WINGET Install --ID 9NT0ZDV64HTC --Silent --Force --Accept-Package-Agreements --Accept-Source-Agreements
+            EXIT
+            
+        }
+
+        Default {
+
+            Write-Host "What the McFuck is the chassis type $chassisType"
+            EXIT 0
+
+        }
+
     }
 
 }
@@ -132,6 +153,8 @@ help clean up the code for the script.
 
 #>
 
+    Write-Host "NOTICE: Attempting to install $ApplicationName RGB software."
+
     Try {
 
         Start-Process "$InstallLocation" -ArgumentList "$Arguments" -Wait
@@ -160,14 +183,34 @@ the model and manufacturer.
     
     $GPUs = [System.Collections.ArrayList]@(Get-PnpDevice -Class 'Display')
 
-    Switch -Wildcard ($GPUs.InstanceID) {
+    $i = 0
+    While ($i -le ($GPUs.Count - 1)) {
+        
+        Switch -Wildcard ($GPUs.FriendlyName[$i]) {
+            
+            "Intel(R) UHD*" {
 
-        #Integrated GPU
-        "*&0&*" {
+                Write-Host "Intel integrated GPU detected (" $GPUs[$i] "). Removing from array."
+                $GPUs.RemoveAt($i)
+                $i++
 
-            Write-Host "NOTICE: Integrated GPU detected. Hardware ID ($_). Skipping and checking for dedicated GPU."
+            }
+
+            "AMD Radeon(TM)*" {
+
+                Write-Host "AMD integrated GPU detected (" $GPUs[$i] "). Removing from array."
+                $GPUs.RemoveAt($i)
+                $i++
+
+            }
 
         }
+
+        $i++
+
+    }
+
+    Switch -Wildcard ($GPUs.InstanceID) {
 
         #NVIDIA GPU ID
         "*VEN_10DE*" {
@@ -181,7 +224,6 @@ the model and manufacturer.
                 "*1043*" {
 
                     Write-Host "NOTICE: ASUS GPU Detected. Checking if 'known' GPU."
-                    #PCI\VEN_10DE&DEV_21C4&SUBSYS_877E1043&REV_A1\4&34A42055&0&0008
 
                     Switch -Wildcard ($_) {
                         
@@ -209,8 +251,8 @@ the model and manufacturer.
                     
                             While (!(Test-Path "C:\Program Files\ASUS\ARMOURY CRATE Lite Service" -ErrorAction SilentlyContinue)) {
                         
-                                Write-Host "Armoury Crate still installing. Checking again in 30 seconds."
-                                Start-Sleep -Seconds 30
+                                Write-Host "Armoury Crate still installing. Checking again in 1 minute."
+                                Start-Sleep -Minutes 1
                         
                             }
 
@@ -232,6 +274,7 @@ the model and manufacturer.
                         
                             Write-Host "NOTICE: Unknown ASUS GPU detected. Go grab Ethan."
                             PAUSE
+                            EXIT
                         
                         }
                     
@@ -244,14 +287,40 @@ the model and manufacturer.
                 #EVGA ID
                 "*3842*" {
 
-                    Write-Host "NOTICE: EVGA GPU Detected. Installing Precision X1."
+                    Write-Host "NOTICE: EVGA GPU Detected. Checking if 'known' GPU."
 
-                    $InstallLocation = "C:\Applications\Extra Software\EVGA Precision X1.exe"
-                    $Arguments = "/S"
-                    $ApplicationName = "Precision X1"
-                    Start-Install
+                    Switch -Wildcard ($_) {
+                    
+                        #Non-RGB GPUs
+                        "EVGA GPU without RGB" {
+                            
+                            Write-Host "NOTICE: Non-RGB EVGA GPU detected. Skipping Precision X1 installation."
+                            Break
+                        
+                        }
 
-                    Copy-Item -Path "C:\Users\Administrator\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\EVGA\EVGA Precision X1.lnk" -Destination "C:\Users\$ENV:Username\Desktop"
+                        #RGB GPUs
+                        "EVGA GPU with RGB" {
+                        
+                            $InstallLocation = "C:\Applications\Extra Software\EVGA Precision X1.exe"
+                            $Arguments = "/S"
+                            $ApplicationName = "Precision X1"
+                            Start-Install
+
+                            Copy-Item -Path "C:\Users\Administrator\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\EVGA\EVGA Precision X1.lnk" -Destination "C:\Users\$ENV:Username\Desktop"
+                        
+                        }
+
+                        Default {
+                        
+                            Write-Host "NOTICE: Unknown EVGA GPU detected. Go grab Ethan."
+                            PAUSE
+                            EXIT
+                        
+                        }
+                    
+                    }
+
                     Break
 
                 }
@@ -259,17 +328,43 @@ the model and manufacturer.
                 #MSI ID
                 "*1462*" {
 
-                    Write-Host "NOTICE: MSI GPU Detected. Installing MSI Center."
+                    Write-Host "NOTICE: MSI GPU Detected. Checking if 'known' GPU."
 
-                    $InstallLocation = "C:\Applications\Extra Software\MSI Center.exe"
-                    $Arguments = "/Silent"
-                    $ApplicationName = "MSI Center"
-                    Start-Install
+                    Switch -Wildcard ($_) {
+                    
+                        #Non-RGB GPUs
+                        "*8C96*" {
+                            
+                            Write-Host "NOTICE: Non-RGB MSI GPU detected. Skipping MSI Center installation."
+                            Break
+                        
+                        }
 
-                    $Path = "9426MICRO-STARINTERNATION.MSICenter_kzh8wxbdkxb8p"
-                    $AppID = "App"
-                    $Name = "MSI Center.lnk"
-                    Get-Shortcut
+                        #RGB GPUs
+                        "MSI GPU with RGB" {
+                        
+                            $InstallLocation = "C:\Applications\Extra Software\MSI Center.exe"
+                            $Arguments = "/Silent"
+                            $ApplicationName = "MSI Center"
+                            Start-Install
+
+                            $Path = "9426MICRO-STARINTERNATION.MSICenter_kzh8wxbdkxb8p"
+                            $AppID = "App"
+                            $Name = "MSI Center.lnk"
+                            Get-Shortcut
+                        
+                        }
+
+                        Default {
+                        
+                            Write-Host "NOTICE: Unknown MSI GPU detected. Go grab Ethan."
+                            PAUSE
+                            EXIT
+                        
+                        }
+                    
+                    }
+
                     Break
 
                 }
@@ -277,14 +372,41 @@ the model and manufacturer.
                 #PNY ID
                 "*196E*" {
 
-                    Write-Host "NOTICE: PNY GPU Detected. Installing VelocityX."
+                    Write-Host "NOTICE: PNY GPU Detected. Checking if 'known' GPU."
 
-                    $InstallLocation = "C:\Applications\Extra Software\PNY VelocityX.exe"
-                    $Arguments = "/SILENT /NORESTART"
-                    $ApplicationName = "PNY VelocityX"
-                    Start-Install
+                    Switch -Wildcard ($_) {
+                    
+                        #Non-RGB GPUs
+                        "PNY GPU without RGB" {
+                            
+                            Write-Host "NOTICE: Non-RGB PNY GPU detected. Skipping VelocityX installation."
+                            Break
+                        
+                        }
 
-                    New-Item -ItemType SymbolicLink -Path "C:\Users\$ENV:Username\Desktop\VelocityX.lnk" -Target "C:\Program Files\VelocityX\VelocityX.exe"
+                        #RGB GPUs
+                        "PNY GPU with RGB" {
+                        
+                            $InstallLocation = "C:\Applications\Extra Software\PNY VelocityX.exe"
+                            $Arguments = "/SILENT /NORESTART"
+                            $ApplicationName = "PNY VelocityX"
+                            Start-Install
+
+                            New-Item -ItemType SymbolicLink -Path "C:\Users\$ENV:Username\Desktop\VelocityX.lnk" -Target "C:\Program Files\VelocityX\VelocityX.exe"
+                        
+                        }
+
+                        Default {
+                        
+                            Write-Host "NOTICE: Unknown PNY GPU detected. Go grab Ethan."
+                            PAUSE
+                            EXIT
+                        
+                        }
+                    
+                    }
+
+                    
                     Break
 
                 }
@@ -292,12 +414,37 @@ the model and manufacturer.
                 #ZOTAC ID
                 "*19DA*" {
 
-                    Write-Host "NOTICE: ZOTAC GPU Detected. Installing Firestorm."
+                    Write-Host "NOTICE: ZOTAC GPU Detected. Checking if 'known' GPU."
 
-                    $InstallLocation = "C:\Applications\Extra Software\ZOTAC Firestorm.exe"
-                    $Arguments = "/SILENT /NORESTART"
-                    $ApplicationName = "ZOTAC Firestorm"
-                    Start-Install
+                    Switch -Wildcard ($_) {
+                    
+                        #Non-RGB GPUs
+                        "ZOTAC GPU without RGB" {
+                            
+                            Write-Host "NOTICE: Non-RGB ZOTAC GPU detected. Skipping Firestorm installation."
+                            Break
+                        
+                        }
+
+                        #RGB GPUs
+                        "*1653*" {
+                        
+                            $InstallLocation = "C:\Applications\Extra Software\ZOTAC Firestorm.exe"
+                            $Arguments = "/SILENT /NORESTART"
+                            $ApplicationName = "ZOTAC Firestorm"
+                            Start-Install
+                        
+                        }
+
+                        Default {
+                        
+                            Write-Host "NOTICE: Unknown ZOTAC GPU detected. Go grab Ethan."
+                            PAUSE
+                            EXIT
+                        
+                        }
+                    
+                    }                 
 
                     Break
 
@@ -306,12 +453,37 @@ the model and manufacturer.
                 #GIGABYTE ID
                 "*1458*" {
 
-                    Write-Host "NOTICE: GIGABYTE GPU Detected. Installing RGB Fusion."
+                    Write-Host "NOTICE: GIGABYTE GPU Detected. Checking if 'known' GPU."
 
-                    $InstallLocation = "C:\Applications\Extra Software\GIGABYTE RGB Fusion.exe"
-                    $Arguments = "/S /v/qn"
-                    $ApplicationName = "GIGABYTE RGB Fusion"
-                    Start-Install
+                    Switch -Wildcard ($_) {
+                    
+                        #Non-RGB GPUs
+                        "*403B*" {
+                            
+                            Write-Host "NOTICE: Non-RGB GIGABYTE GPU detected. Skipping RGB Fusion installation."
+                            Break
+                        
+                        }
+
+                        #RGB GPUs
+                        "GIGABYTE GPU with RGB" {
+                        
+                            $InstallLocation = "C:\Applications\Extra Software\GIGABYTE RGB Fusion.exe"
+                            $Arguments = "/S /v/qn"
+                            $ApplicationName = "GIGABYTE RGB Fusion"
+                            Start-Install
+                        
+                        }
+
+                        Default {
+                        
+                            Write-Host "NOTICE: Unknown GIGABYTE GPU detected. Go grab Ethan."
+                            PAUSE
+                            EXIT
+                        
+                        }
+                    
+                    }                    
 
                     Break
 
@@ -329,7 +501,7 @@ the model and manufacturer.
         }
 
         #AMD GPU ID
-        "*VEN_1002**&1&*" {
+        "*VEN_1002*" {
 
             #GPU Board Partner Detection
             Switch -Wildcard ($GPUs.InstanceID) {
@@ -338,12 +510,11 @@ the model and manufacturer.
                 "*1043*" {
                 
                     Write-Host "NOTICE: ASUS GPU Detected. Checking if 'known' GPU."
-                    #PCI\VEN_10DE&DEV_21C4&SUBSYS_877E1043&REV_A1\4&34A42055&0&0008
 
                     Switch -Wildcard ($_) {
                         
                         #Non-RGB GPUs
-                        "ASUS GPU without RGB" {
+                        "*05D7*" {
                         
                         Write-Host "NOTICE: Non-RGB ASUS GPU detected. Skipping Armoury Crate installation."
                         Break
@@ -360,8 +531,8 @@ the model and manufacturer.
                     
                             While (!(Test-Path "C:\Program Files\ASUS\ARMOURY CRATE Lite Service" -ErrorAction SilentlyContinue)) {
                         
-                                Write-Host "Armoury Crate still installing. Checking again in 30 seconds."
-                                Start-Sleep -Seconds 30
+                                Write-Host "Armoury Crate still installing. Checking again in 1 minute."
+                                Start-Sleep -Minutes 1
                         
                             }
 
@@ -432,55 +603,10 @@ the model and manufacturer.
 #Pre-emptively update all available packages. Not really necessary but we may as well.
 WINGET Upgrade --All --Silent --Accept-Package-Agreements --Accept-Source-Agreements
 
-Get-ChassisType {
-<# 
-
-.DESCRIPTION Checks the reported chassis of the system (Desktop/Laptop)
-If the system is a laptop, it will install the laptop software and exit
-If the system is a desktop the rest of the script will run, installing all necessary software
-
-#>
-
-    Switch ($chassisType) {
-        
-        "Desktop" {
-        
-            Write-Host "NOTICE: System is a desktop, checking what software to install."
-            Break
-        
-        }
-
-        "Other" {
-
-            Write-Host "NOTICE: System is a desktop, checking what software to install."
-            Break
-
-        }
-
-        "Laptop" {
-
-            Write-Host "NOTICE: System is a laptop, installing Intel NUC software."
-            WINGET Install --ID 9NT0ZDV64HTC --Silent --Force --Accept-Package-Agreements --Accept-Source-Agreements
-            EXIT
-
-        }
-        
-        Default {
-
-            Write-Host "What the McFuck is the chassis type $chassisType"
-            EXIT 0
-
-        }
-
-    }
-
-}
-
-#Good chance the first $Mobo variable is not needed as every board I am aware of reports
-#its brand under Win32_BaseBoard Manufacturer. Need to test this theory to be sure.
-$Mobo = Get-WmiObject -Class Win32_BaseBoard | Select-Object Manufacturer
+Get-ChassisType
 
 #Motherboards
+$Mobo = Get-WmiObject -Class Win32_BaseBoard | Select-Object Manufacturer
 Switch -Wildcard ($Mobo) {
     
     #MSI Motherboard
@@ -513,8 +639,8 @@ Switch -Wildcard ($Mobo) {
                     
         While (!(Test-Path "C:\Program Files\ASUS\ARMOURY CRATE Lite Service" -ErrorAction SilentlyContinue)) {
                         
-            Write-Host "Armoury Crate still installing. Checking again in 30 seconds."
-            Start-Sleep -Seconds 30
+            Write-Host "Armoury Crate still installing. Checking again in 1 minute."
+            Start-Sleep -Minutes
                         
         }
 
@@ -568,7 +694,6 @@ Get-GPU
 
 #Check for Corsair RAM - No better way to detect it right now
 $RAM = Get-WMIObject Win32_PhysicalMemory | Select-Object Manufacturer
-
 Switch -Wildcard ($RAM) {
 
     "*Corsair*" {
@@ -593,8 +718,6 @@ Switch -Wildcard ($RAM) {
 
 #Detects all installed system devices (drivers) and pipes them into a variable
 $devices = [System.Collections.ArrayList]@(Get-PnpDevice -InstanceId '*')
-
-#Misc. system devices
 Switch -Wildcard ($devices.InstanceID) {
 
     #NZXT Smart Device V2
@@ -603,16 +726,18 @@ Switch -Wildcard ($devices.InstanceID) {
 
         Write-Host "NOTICE: Detected NZXT Smart Device V2. Installing NZXT CAM."
 
-        $InstallLocation = "C:\Applications\Extra Software\NZXT CAM.exe"
-        $Arguments = ""
-        $ApplicationName = "NZXT CAM"
-        Start-Install
+        WINGET Install --ID NZXT.CAM --Silent --Accept-Package-Agreements --Accept-Source-Agreements
+
+        #$InstallLocation = "C:\Applications\Extra Software\NZXT CAM.exe"
+        #$Arguments = ""
+        #$ApplicationName = "NZXT CAM"
+        #Start-Install
 
     }
 
     #Corsair H100i
     #HID-Compliant Vendor-Defined Device
-    "HID\VID_1B1C&PID_0C20\6&5281263&0&0000" {
+    "HID\VID_1B1C&PID_0C20\*" {
 
         Write-Host "NOTICE: Detected Corsair H100i. Installing Corsair iCUE."
 
@@ -628,28 +753,33 @@ Switch -Wildcard ($devices.InstanceID) {
 
         Write-Host "NOTICE: Detected Elgato HD60 Pro. Installing Elgato software."
 
-        $InstallLocation = "C:\Applications\Extra Software\Elgato HD60Pro\4KCaptureUtility.msi"
-        $Arguments = "/PASSIVE /NORESTART"
-        $ApplicationName = "Elgato 4K Capture Utility"
-        Start-Install
+        WINGET Install --ID Elgato.4KCaptureUtility --Silent --Accept-Package-Agreements --Accept-Source-Agreements
+        WINGET Install --ID Elgato.GameCapture.HD --Silent --Accept-Package-Agreements --Accept-Source-Agreements
 
-        $InstallLocation = "C:\Applications\Extra Software\Elgato HD60Pro\GameCaptureSetup.msi"
-        $Arguments = "/PASSIVE /NORESTART"
-        $ApplicationName = "Elgato Game Capture Utility"
-        Start-Install
+        #$InstallLocation = "C:\Applications\Extra Software\Elgato HD60Pro\4KCaptureUtility.msi"
+        #$Arguments = "/PASSIVE /NORESTART"
+        #$ApplicationName = "Elgato 4K Capture Utility"
+        #Start-Install
+
+        #$InstallLocation = "C:\Applications\Extra Software\Elgato HD60Pro\GameCaptureSetup.msi"
+        #$Arguments = "/PASSIVE /NORESTART"
+        #$ApplicationName = "Elgato Game Capture Utility"
+        #Start-Install
 
     }
 
     #Sound BlasterX AE-5 Plus
     #Sound, Video, and Game Controllers
-    "*VEN_1102&DEV_0011&SUBSYS_1102019REV_1009*" {
+    "*VEN_1102&DEV_0011&SUBSYS_11020191&REV_1009*" {
 
         Write-Host "NOTICE: Detected Sound BlasterX AE-5 Plus. Installing Sound Blaster audio software."
 
-        $InstallLocation = "C:\Applications\Extra Software\Sound BlasterX.exe"
-        $Arguments = "/SILENT /NORESTART"
-        $ApplicationName = "Sound BlasterX AE-5 Plus"
-        Start-Install
+        WINGET Install --ID CreativeTechnology.SoundBlasterCommand --Silent --Accept-Package-Agreements --Accept-Source-Agreements
+
+        #$InstallLocation = "C:\Applications\Extra Software\Sound BlasterX.exe"
+        #$Arguments = "/SILENT /NORESTART"
+        #$ApplicationName = "Sound BlasterX AE-5 Plus"
+        #Start-Install
 
     }
 
@@ -682,22 +812,33 @@ Switch -Wildcard ($devices.InstanceID) {
 Switch -Wildcard ($ENV:Computername) {
 
     #Uses the computers name to detect if iRacing software is needed or not
-    "*-iRacing*" {
+    "iRacing-*" {
 
         Write-Host "NOTICE: Computer name includes iRacing. Will now install all required iRacing files."
-        & 'C:\Applications\Extra Software\iRacing\Driver.exe' /S /v/qn
-        & 'C:\Applications\Extra Software\iRacing\vc2012_redist_x64.exe' /install /passive /norestart
-        & 'C:\Applications\Extra Software\iRacing\vc2012_redist_x86.exe' /install /passive /norestart
-        & 'C:\Applications\Extra Software\iRacing\vc2013_redist_x64.exe' /install /passive /norestart
-        & 'C:\Applications\Extra Software\iRacing\vc2013_redist_x86.exe' /install /passive /norestart
-        & 'C:\Applications\Extra Software\iRacing\vc2015_redist_x64.exe' /install /passive /norestart
-        & 'C:\Applications\Extra Software\iRacing\vc2015_redist_x86.exe' /install /passive /norestart
-        & 'C:\Applications\Extra Software\iRacing\vc2017_redist_x64.exe' /install /passive /norestart
-        & 'C:\Applications\Extra Software\iRacing\vc2017_redist_x86.exe' /install /passive /norestart
+        $InstallLocation = "C:\Applications\Extra Software\iRacing\Driver.exe"
+        $Arguments = "/S /v/qn"
+        $ApplicationName = "iRacing Driver"
+        Start-Install
+        WINGET Install --ID Microsoft.VC++2012Redist-x64 --Silent --Accept-Package-Agreements --Accept-Source-Agreements
+        WINGET Install --ID Microsoft.VC++2012Redist-x86 --Silent --Accept-Package-Agreements --Accept-Source-Agreements
+        #& 'C:\Applications\Extra Software\iRacing\vc2012_redist_x64.exe' /install /passive /norestart
+        #& 'C:\Applications\Extra Software\iRacing\vc2012_redist_x86.exe' /install /passive /norestart
+        WINGET Install --ID Microsoft.VC++2013Redist-x64 --Silent --Accept-Package-Agreements --Accept-Source-Agreements
+        WINGET Install --ID Microsoft.VC++2013Redist-x86 --Silent --Accept-Package-Agreements --Accept-Source-Agreements
+        #& 'C:\Applications\Extra Software\iRacing\vc2013_redist_x64.exe' /install /passive /norestart
+        #& 'C:\Applications\Extra Software\iRacing\vc2013_redist_x86.exe' /install /passive /norestart
+        WINGET Install --ID Microsoft.VC++2015Redist-x64 --Silent --Accept-Package-Agreements --Accept-Source-Agreements
+        WINGET Install --ID Microsoft.VC++2015Redist-x86 --Silent --Accept-Package-Agreements --Accept-Source-Agreements
+        #& 'C:\Applications\Extra Software\iRacing\vc2015_redist_x64.exe' /install /passive /norestart
+        #& 'C:\Applications\Extra Software\iRacing\vc2015_redist_x86.exe' /install /passive /norestart
+        WINGET Install --ID Microsoft.VC++2017Redist-x64 --Silent --Accept-Package-Agreements --Accept-Source-Agreements
+        WINGET Install --ID Microsoft.VC++2017Redist-x86 --Silent --Accept-Package-Agreements --Accept-Source-Agreements
+        #& 'C:\Applications\Extra Software\iRacing\vc2017_redist_x64.exe' /install /passive /norestart
+        #& 'C:\Applications\Extra Software\iRacing\vc2017_redist_x86.exe' /install /passive /norestart
         Enable-WindowsOptionalFeature -NoRestart -Online -FeatureName "NetFx3"
-        Copy-Item "C:\Applications\Extra Software\iRacing\EasyAntiCheat" -Destination "C:\Program Files (x86)"
-        Copy-Item "C:\Applications\Extra Software\iRacing\iRacing" -Destination "C:\Program Files (x86)"
-        Copy-Item "C:\Applications\Extra Software\iRacing\Shortcuts\*" -Destination "C:\Users\$ENV:Username\Desktop"
+        Copy-Item -Path 'C:\Applications\Extra Software\iRacing\EasyAntiCheat' -Destination 'C:\Program Files (x86)' -Recurse
+        Copy-Item -Path 'C:\Applications\Extra Software\iRacing\iRacing' -Destination 'C:\Program Files (x86)' -Recurse
+        Copy-Item -Path 'C:\Applications\Extra Software\iRacing\Shortcuts\*' -Destination 'C:\Users\$ENV:Username\Desktop' -Recurse
         Break
 
     }
