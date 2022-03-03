@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<superposition>
+	<pass>
+		<api>DirectX</api>													<!-- DirectX, OpenGL -->
+		<fullscreen>2</fullscreen>											<!-- 0, 1, 2 (Disabled, enabled, windowed fullscreen) -->
+		<resolution>1920x1080</resolution>
+		<quality>Medium</quality>											<!-- Low, Medium, High, Extreme, 4K_Optimized, 8K_Optimized -->
+		<textures>Medium</textures>											<!-- Low, Medium, High -->
+		<dof>1</dof>														<!-- 0, 1 [Depth Of Field (On, Off)] -->
+		<motion_blur>0</motion_blur>										<!-- 0, 1 (On, Off) -->
+		<sound>0</sound>													<!-- 0, 1 (On, Off) -->
+		<mode>Default</mode>												<!-- Default, Frame, Scene [Play benchmark, play a given scene (0-17), play a given frame (0-5400)] -->
+		<mode_duration>60</mode_duration>									<!-- Duration of Benchmark in minutes -->
+		<iterations>1</iterations>											<!-- Count of loop of this pass (The amount listed here will also specify how many results will be saved to .csv) -->
+		<log_csv>C:\Benchmark\Results\result_pass1_medium.csv</log_csv>		<!-- Path to per-frame statistics -->
+		<log_csv_step>60</log_csv_step>										<!-- Interval in per-frame statistics in seconds (less or equal zero - every frame)  -->
+	</pass>
+	<pass>
+		<api>DirectX</api>													<!-- DirectX, OpenGL -->
+		<fullscreen>2</fullscreen>											<!-- 0, 1, 2 (Disabled, enabled, windowed fullscreen) -->
+		<resolution>1920x1080</resolution>
+		<quality>Medium</quality>											<!-- Low, Medium, High, Extreme, 4K_Optimized, 8K_Optimized -->
+		<textures>Medium</textures>											<!-- Low, Medium, High -->
+		<dof>1</dof>														<!-- 0, 1 [Depth Of Field (On, Off)] -->
+		<motion_blur>0</motion_blur>										<!-- 0, 1 (On, Off) -->
+		<sound>0</sound>													<!-- 0, 1 (On, Off) -->
+		<mode>Default</mode>												<!-- Default, Frame, Scene [Play benchmark, play a given scene (0-17), play a given frame (0-5400)] -->
+		<mode_duration>60</mode_duration>									<!-- Duration of Benchmark in minutes -->
+		<iterations>1</iterations>											<!-- Count of loop of this pass (The amount listed here will also specify how many results will be saved to .csv) -->
+		<log_csv>C:\Benchmark\Results\result_medium.csv</log_csv>			<!-- Path to per-frame statistics -->
+		<log_csv_step>60</log_csv_step>										<!-- Interval in per-frame statistics in seconds (less or equal zero - every frame)  -->
+	</pass>
+</superposition>
