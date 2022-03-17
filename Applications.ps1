@@ -120,27 +120,26 @@ Function Get-Shortcut {
 .DESCRIPTION
 Get-Shortcut is used to put a shortcut for a Windows Store App on the desktop dynamically
 
+.NOTE
+$TargetPath should be laid out as such; "shell:AppsFolder\(Target Path)!(App ID)"
+$ShortcutFile should be laid out as such; "$env:USERPROFILE\Desktop\(Program Name).lnk"
+
+The 'Target Path' for $TargetPath can be found by manually putting a shortcut for the desired
+application on the desktop and opening the 'Properties' tab. The 'Target Type' field is what you need.
+
+The 'App ID' can be found by going to the target folder for the app (Search the previously
+found 'Target Type' in File Explorer to find this) and opening the AppManifest.xml file.
+Once open, search for 'executable='. The App ID should be stored as 'ID = '
+
 #>
 
-    <#
-
-    $TargetPath should be laid out as such; "shell:AppsFolder\(Target Path)!(App ID)"
-    $ShortcutFile should be laid out as such; "$env:USERPROFILE\Desktop\(Program Name).lnk"
-
-    The 'Target Path' for $TargetPath can be found by manually putting a shortcut for the desired
-    application on the desktop and opening the 'Properties' tab. The 'Target Type' field is what you need.
-
-    The 'App ID' can be found by going to the target folder for the app (Search the previously
-    found 'Target Type' in File Explorer to find this) and opening the AppManifest.xml file.
-    Once open, search for 'executable='. The App ID should be stored as 'ID = '
-
-    #>
     $TargetPath =  "shell:AppsFolder\$Path!$AppID"
     $ShortcutFile = "$env:USERPROFILE\Desktop\$Name"
     $WScriptShell = New-Object -ComObject WScript.Shell
     $Shortcut = $WScriptShell.CreateShortcut($ShortcutFile)
     $Shortcut.TargetPath = $TargetPath
     $Shortcut.Save()
+    Start-Sleep -Seconds 2
 
 }
 
@@ -186,11 +185,11 @@ the model and manufacturer.
     $i = 0
     While ($i -le ($GPUs.Count - 1)) {
         
-        Switch -Wildcard ($GPUs.FriendlyName[$i]) {
+        Switch -Wildcard ($GPUs[$i].FriendlyName) {
             
             "Intel(R) UHD*" {
 
-                Write-Host "Intel integrated GPU detected (" $GPUs[$i] "). Removing from array."
+                Write-Host "Intel integrated GPU detected, removing from array: $GPUs[$i].FriendlyName" 
                 $GPUs.RemoveAt($i)
                 $i++
 
@@ -198,7 +197,7 @@ the model and manufacturer.
 
             "AMD Radeon(TM)*" {
 
-                Write-Host "AMD integrated GPU detected (" $GPUs[$i] "). Removing from array."
+                Write-Host "AMD integrated GPU detected, removing from array: $GPUs[$i].FriendlyName"
                 $GPUs.RemoveAt($i)
                 $i++
 
@@ -240,32 +239,61 @@ the model and manufacturer.
                             Break
                         
                         }
+                        "*1043*" {
+                        
+                            Write-Host "NOTICE: Non-RGB ASUS GPU detected. Skipping Armoury Crate installation."
+                            Break
+                        
+                        }
 
                         #RGB GPUs
-                        "ASUS GPU with RGB" {
-                        
+                        "87B2" {
+
+                            While (Get-Process -Name "AsusDownLoadLicense" -ErrorAction SilentlyContinue) {
+        
+                                Write-Host "Armoury Crate download prompt active. Attempting to kill process."
+                                Stop-Process -Name "AsusDownLoadLicense" -Force
+                                Start-Sleep -Seconds 60
+
+                            }
+
                             $InstallLocation = "C:\Applications\Extra Software\ASUS Armoury Crate.exe"
                             $Arguments = "-Silent"
                             $ApplicationName = "Armoury Crate"
                             Start-Install
+
+                            Start-Sleep -Seconds 10
                     
-                            While (!(Test-Path "C:\Program Files\ASUS\ARMOURY CRATE Lite Service" -ErrorAction SilentlyContinue)) {
-                        
-                                Write-Host "Armoury Crate still installing. Checking again in 1 minute."
-                                Start-Sleep -seconds 60
-                        
+                            While (Get-Process -Name "Armoury Crate Installer" -ErrorAction SilentlyContinue) {
+        
+                                Write-Host "Armoury Crate installer currently running. Checking again in 1 minute."
+                                Start-Sleep -Seconds 60
+
                             }
 
-                            Write-Host "ASUS Software appears to be installed. Continuing."
+                            $software = "ASUS Framework Service"
+                            $installed = $null -ne (Get-ItemProperty HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.DisplayName -eq $software }) 
 
-                            $Path = "B9ECED6F.ArmouryCrate_qmba6cd70vzyy"
-                            $AppID = "App"
-                            $Name = "Armoury Crate.lnk"
-                            Get-Shortcut
-                            $Path = "B9ECED6F.AURACreator_qmba6cd70vzyy"
-                            $AppID = "App"
-                            $Name = "Aura Creator.lnk"
-                            Get-Shortcut
+                            If (!$installed) {
+
+                                Write-Host "Armoury Crate may not have installed properly. Likely needed a restart."
+
+                            } else {
+
+                                Write-Host "ASUS Software appears to be installed. Continuing."
+                                Start-Sleep -Seconds 30
+
+                                $Path = "B9ECED6F.ArmouryCrate_qmba6cd70vzyy"
+                                $AppID = "App"
+                                $Name = "ARMOURY CRATE.lnk"
+                                Get-Shortcut
+                                $Path = "B9ECED6F.AURACreator_qmba6cd70vzyy"
+                                $AppID = "App"
+                                $Name = "Aura Creator.lnk"
+                                Get-Shortcut
+
+                            }
+
                             Break
                         
                         }
@@ -292,7 +320,7 @@ the model and manufacturer.
                     Switch -Wildcard ($_) {
                     
                         #Non-RGB GPUs
-                        "EVGA GPU without RGB" {
+                        "*EVGA GPU without RGB*" {
                             
                             Write-Host "NOTICE: Non-RGB EVGA GPU detected. Skipping Precision X1 installation."
                             Break
@@ -300,15 +328,34 @@ the model and manufacturer.
                         }
 
                         #RGB GPUs
-                        "EVGA GPU with RGB" {
-                        
-                            $InstallLocation = "C:\Applications\Extra Software\EVGA Precision X1.exe"
-                            $Arguments = "/S"
-                            $ApplicationName = "Precision X1"
-                            Start-Install
+                        "*3842*" {
+                            
+                            New-Item -ItemType Directory -Path "C:\Program Files\EVGA" -Name "Precision X1"
+                            Get-ChildItem -Path "C:\Applications\Extra Software\EVGA Precision X1\*" -Recurse | Move-Item -Destination "C:\Program Files\EVGA\Precision X1\" -Force
+                            
+                            Start-Process -FilePath "C:\Program Files\EVGA\Precision X1\regWing0.exe" -Wait
+                            Remove-Item -Path "C:\Program Files\EVGA\Precision X1\regWing0.exe" -Force
 
-                            Copy-Item -Path "C:\Users\Administrator\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\EVGA\EVGA Precision X1.lnk" -Destination "C:\Users\$ENV:Username\Desktop"
-                        
+                            Start-Process -FilePath "C:\Program Files\EVGA\Precision X1\VC_redist.x64.exe" -ArgumentList "/install /passive /norestart" -Wait
+                            Remove-Item -Path "C:\Program Files\EVGA\Precision X1\VC_redist.x64.exe" -Force
+
+                            Move-Item -LiteralPath 'C:\Program Files\EVGA\Precision X1\$APPDATA\EVGA' -Destination "$ENV:APPDATA" -Force
+                            Remove-Item -LiteralPath 'C:\Program Files\EVGA\Precision X1\$APPDATA' -Force
+
+                            Remove-Item -LiteralPath 'C:\Program Files\EVGA\Precision X1\$PLUGINSDIR' -Recurse -Force
+
+                            Move-Item -LiteralPath 'C:\Program Files\EVGA\Precision X1\$SYSDIR\FW1FontWrapper.dll' -Destination "C:\Windows\SysWOW64" -Force
+                            Move-Item -LiteralPath 'C:\Program Files\EVGA\Precision X1\$SYSDIR\FW1FontWrapper_x64.dll' -Destination "C:\Windows\System32" -Force
+                            Remove-Item -LiteralPath 'C:\Program Files\EVGA\Precision X1\$SYSDIR' -Force
+                            
+                            Start-Process -FilePath "C:\Program Files\EVGA\Precision X1\Redist\dxwebsetup.exe" -ArgumentList "/Q"
+                            Start-Process -FilePath "C:\Program Files\EVGA\Precision X1\Redist\vcredist_x64.exe" -ArgumentList "/install /passive /norestart"
+                            Start-Process -FilePath "C:\Program Files\EVGA\Precision X1\Redist\vcredist_x86.exe" -ArgumentList "/install /passive /norestart" -Wait
+
+                            New-Item -ItemType SymbolicLink -Path "C:\Users\$ENV:Username\Desktop\EVGA Precision X1.lnk" -Target "C:\Program Files\EVGA\Precision X1\PrecisionX_x64.exe"
+                            
+                            Remove-Item -Path "C:\Applications\Extra Software\EVGA Precision X1" -Force
+
                         }
 
                         Default {
@@ -377,7 +424,7 @@ the model and manufacturer.
                     Switch -Wildcard ($_) {
                     
                         #Non-RGB GPUs
-                        "PNY GPU without RGB" {
+                        "*PNY GPU without RGB*" {
                             
                             Write-Host "NOTICE: Non-RGB PNY GPU detected. Skipping VelocityX installation."
                             Break
@@ -385,7 +432,7 @@ the model and manufacturer.
                         }
 
                         #RGB GPUs
-                        "PNY GPU with RGB" {
+                        "*196E*" {
                         
                             $InstallLocation = "C:\Applications\Extra Software\PNY VelocityX.exe"
                             $Arguments = "/SILENT /NORESTART"
@@ -419,7 +466,7 @@ the model and manufacturer.
                     Switch -Wildcard ($_) {
                     
                         #Non-RGB GPUs
-                        "ZOTAC GPU without RGB" {
+                        "*ZOTAC GPU without RGB*" {
                             
                             Write-Host "NOTICE: Non-RGB ZOTAC GPU detected. Skipping Firestorm installation."
                             Break
@@ -523,29 +570,52 @@ the model and manufacturer.
 
                         #RGB GPUs
                         "ASUS GPU with RGB" {
-                        
+
+                            While (Get-Process -Name "AsusDownLoadLicense" -ErrorAction SilentlyContinue) {
+        
+                                Write-Host "Armoury Crate download prompt active. Attempting to kill process."
+                                Stop-Process -Name "AsusDownLoadLicense" -Force
+                                Start-Sleep -Seconds 60
+
+                            }
+
                             $InstallLocation = "C:\Applications\Extra Software\ASUS Armoury Crate.exe"
                             $Arguments = "-Silent"
                             $ApplicationName = "Armoury Crate"
                             Start-Install
+
+                            Start-Sleep -Seconds 10
                     
-                            While (!(Test-Path "C:\Program Files\ASUS\ARMOURY CRATE Lite Service" -ErrorAction SilentlyContinue)) {
-                        
-                                Write-Host "Armoury Crate still installing. Checking again in 1 minute."
-                                Start-Sleep -seconds 60
-                        
+                            While (Get-Process -Name "Armoury Crate Installer" -ErrorAction SilentlyContinue) {
+        
+                                Write-Host "Armoury Crate installer currently running. Checking again in 1 minute."
+                                Start-Sleep -Seconds 60
+
                             }
 
-                            Write-Host "ASUS Software appears to be installed. Continuing."
+                            $software = "ASUS Framework Service"
+                            $installed = $null -ne (Get-ItemProperty HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.DisplayName -eq $software }) 
 
-                            $Path = "B9ECED6F.ArmouryCrate_qmba6cd70vzyy"
-                            $AppID = "App"
-                            $Name = "Armoury Crate.lnk"
-                            Get-Shortcut
-                            $Path = "B9ECED6F.AURACreator_qmba6cd70vzyy"
-                            $AppID = "App"
-                            $Name = "Aura Creator.lnk"
-                            Get-Shortcut
+                            If (!$installed) {
+
+                                Write-Host "Armoury Crate may not have installed properly. Likely needed a restart."
+
+                            } else {
+
+                                Write-Host "ASUS Software appears to be installed. Continuing."
+                                Start-Sleep -Seconds 30
+
+                                $Path = "B9ECED6F.ArmouryCrate_qmba6cd70vzyy"
+                                $AppID = "App"
+                                $Name = "ARMOURY CRATE.lnk"
+                                Get-Shortcut
+                                $Path = "B9ECED6F.AURACreator_qmba6cd70vzyy"
+                                $AppID = "App"
+                                $Name = "Aura Creator.lnk"
+                                Get-Shortcut
+
+                            }
+
                             Break
                         
                         }
@@ -632,28 +702,51 @@ Switch -Wildcard ($Mobo) {
 
         Write-Host "NOTICE: ASUS Motherboard detected, installing Armoury Crate"
 
+        While (Get-Process -Name "AsusDownLoadLicense" -ErrorAction SilentlyContinue) {
+        
+            Write-Host "Armoury Crate download prompt active. Attempting to kill process."
+            Stop-Process -Name "AsusDownLoadLicense" -Force
+            Start-Sleep -Seconds 60
+
+        }
+
         $InstallLocation = "C:\Applications\Extra Software\ASUS Armoury Crate.exe"
         $Arguments = "-Silent"
         $ApplicationName = "Armoury Crate"
         Start-Install
+
+        Start-Sleep -Seconds 10
                     
-        While (!(Test-Path "C:\Program Files\ASUS\ARMOURY CRATE Lite Service" -ErrorAction SilentlyContinue)) {
-                        
-            Write-Host "Armoury Crate still installing. Checking again in 1 minute."
-            Start-Sleep -seconds 60
-                        
+        While (Get-Process -Name "Armoury Crate Installer" -ErrorAction SilentlyContinue) {
+        
+            Write-Host "Armoury Crate installer currently running. Checking again in 1 minute."
+            Start-Sleep -Seconds 60
+
         }
 
-        Write-Host "ASUS Software appears to be installed. Continuing."
+        $software = "ASUS Framework Service"
+        $installed = $null -ne (Get-ItemProperty HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.DisplayName -eq $software }) 
 
-        $Path = "B9ECED6F.ArmouryCrate_qmba6cd70vzyy"
-        $AppID = "App"
-        $Name = "Armoury Crate.lnk"
-        Get-Shortcut
-        $Path = "B9ECED6F.AURACreator_qmba6cd70vzyy"
-        $AppID = "App"
-        $Name = "Aura Creator.lnk"
-        Get-Shortcut
+        If (!$installed) {
+
+            Write-Host "Armoury Crate may not have installed properly. Likely needed a restart."
+
+        } else {
+
+            Write-Host "ASUS Software appears to be installed. Continuing."
+            Start-Sleep -Seconds 30
+
+            $Path = "B9ECED6F.ArmouryCrate_qmba6cd70vzyy"
+            $AppID = "App"
+            $Name = "ARMOURY CRATE.lnk"
+            Get-Shortcut
+            $Path = "B9ECED6F.AURACreator_qmba6cd70vzyy"
+            $AppID = "App"
+            $Name = "Aura Creator.lnk"
+            Get-Shortcut
+
+        }
+        
         Break
 
     }
