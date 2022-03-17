@@ -20,13 +20,14 @@ $mobo = Get-WmiObject -Class Win32_BaseBoard | Select-Object Manufacturer
 
 if (Get-WmiObject -Class Win32_PnpEntity | Where-Object {$_.ConfigManagerErrorCode -gt 0 }) {
 
-    Write-Host "There are missing drivers"
+    Write-Host "There are missing drivers, resolve and add to deployment."
     $mobo
     $result
+    PAUSE
 
 } else {
 
-    Write-Host "There are no missing drivers"
+    Write-Host "There are no missing drivers."
 
 }
 
