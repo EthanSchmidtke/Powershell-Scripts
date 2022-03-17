@@ -1,0 +1,161 @@
+::NOTE TO SELF::
+::Make a script to automatically run each DISM command and spit our errors based on what fails or passes - Store a local, fresh Windows image for DISM or SFC to pull from if the system files are corrupted
+
+DISM Documentation: https://docs.microsoft.com/en-us/windows-hardware/manufacture/desktop/dism-image-management-command-line-options-s14
+
+How to run DISM to repair the image of Windows 10
+The Deployment Image Servicing and Management command tool has three options to repair a Windows 10 image, including "CheckHealth," "ScanHealth," and "RestoreHealth," which you want to run in that order. Also, depending on the severity of the problem, you can use special settings with the "RestoreHealth" option to fix the locally available image using different source files.
+Check problems with DISM using CheckHealth option
+The CheckHealth option in DISM lets you quickly determine if there are any corruptions inside the local image, but the option won't perform any repairs.
+To check the Windows 10 image for issues with DISM, use these steps:
+Open Start.
+Search for Command Prompt, right-click the top result, and select the Run as administrator option.
+Type the following command to perform a quick check and press Enter:
+DISM /Online /Cleanup-Image /CheckHealth
+
+Once you complete the steps, the tool will run and verify any data corruption that requires fixing.
+Check problems with DISM using ScanHealth option
+The ScanHealth option performs a more advanced scan to determine if the image has any problems.
+To perform an advanced scan with DISM, use these steps:
+Open Start.
+Search for Command Prompt, right-click the top result, and select the Run as administrator option.
+Type the following command to perform an advanced DISM scan and press Enter:
+DISM /Online /Cleanup-Image /ScanHealth
+
+After you complete the steps, the advanced scan will take several minutes to scan and determine if the image needs repairing.
+Repair problems with DISM using RestoreHealth option
+If there are issues with the system image of Windows 10, use DISM with the RestoreHealth option to run an advanced scan and repair problems automatically.
+To repair Windows 10 image problems with DISM, use these steps:
+Open Start.
+Search for Command Prompt, right-click the top result, and select the Run as administrator option.
+Type the following command to repair the Windows 10 image and press Enter:
+DISM /Online /Cleanup-Image /RestoreHealth
+
+Quick note: If the command seems stuck at 20 or 40 percent, it's normal behavior. After a few minutes, the process will complete successfully.
+Once you complete the steps, the Deployment Image Servicing and Management tool will connect to Windows Update to download and replace damaged files as necessary.
+Fix problems with DISM using WIM image
+Although DISM is usually reliable, if there are problems getting the replacement files or you are not connected to the internet, an alternative source to repair the files
+using another image with the Source option will be required. In this case, you'll need an install.wim or install.esd file from another device, installation media, or ISO file.
+Also, the source of the known good files must match the same version, edition, and language of Windows 10 running on the computer.
+Download Windows 10 ISO file
+If you need to specify a different source, it's recommended to use the Media Creation Tool to download an ISO image of Windows 10.
+
+Click the Accept button to agree to the terms.
+Select the Create installation media (USB flash drive, DVD, or ISO file) for another PC option.
+Select the ISO file option.
+Click the Next button.
+Select the destination for the Windows 10 ISO file.
+Click the Save button.
+Click the link to open the file location with File Explorer.
+Click the Finish button.
+Double-click the Windows.iso file to mount the image.
+Under the This PC section, in the left pane, confirm the drive letter for the mounted image.
+
+After you complete the steps, you can proceed with the tool using the "Source" option to repair the local image of Windows 10.
+Fix Windows 10 recovery image
+To run DISM with a different source (install.wim) image, use these steps:
+Open Start.
+Search for Command Prompt, right-click the top result, and select the Run as administrator option.
+Type the following command to repair the Windows 10 image and press Enter:
+DISM /Online /Cleanup-Image /RestoreHealth /Source:F:\Sources\install.wim /LimitAccess
+
+In the command, make sure to replace "F" for the drive letter that corresponds to the ISO mount point in File Explorer.
+(Optional) Type the following command to limit the use of Windows Update and press Enter:
+DISM /Online /Cleanup-Image /RestoreHealth /Source:F\Sources\install.wim /LimitAccess
+(Optional) Type the following variant of the previous command to accomplish the same task and press Enter:
+DISM /Online /Cleanup-Image /RestoreHealth /Source:wim:F:\Sources\install.wim:1 /LimitAccess
+In the command, make sure to change F:\Sources, for the path to the "install.wim" file.
+Once you complete the steps, the command will scan and repair any issues using the "install.wim" file you specified.
+Fix problems with DISM using ESD image
+Alternatively, if you have an encrypted "install.esd" image, you can use it to repair the damaged files of the local image.
+To run DISM with an "install.esd" image file as the source, use these steps:
+Open Start.
+Search for Command Prompt, right-click the top result, and select the Run as administrator option.
+Type the following command to repair the image with an "install.esd" file and press Enter:
+DISM /Online /Cleanup-Image /RestoreHealth /Source:C:\ESD\Windows\sources\install.esd
+
+In the command, make sure to change C:\ESD\Windows\sources, for the path that corresponds to the install's location.esd file (if applicable).
+(Optional) Type the following command to limit the use of Windows Update and press Enter:
+DISM /Online /Cleanup-Image /RestoreHealth /Source:C:\ESD\Windows\sources\install.esd /LimitAccess
+(Optional) Type the following variant of the previous command to accomplish the same task and press Enter:
+DISM /Online /Cleanup-Image /RestoreHealth /Source:esd:C:\ESD\Windows\sources\install.esd:1 /LimitAccess
+(Optional) Type the following command to use an install.esd file located in another drive and press Enter:
+DISM /Online /Cleanup-Image /RestoreHealth /Source:F:\Sources\install.esd
+In the command, make sure to change F:\Sources for the path to the location of the "install.esd" file.
+After you complete the steps, DISM will repair the damaged files using the files included in the "install.esd" image, and the log files will be saved on %windir%/Logs/CBS/CBS.log and %windir%\Logs\DISM\dism.log, which you can then view to understand the files that were repaired.
+
+How to run SFC to repair problems on Windows 10
+The above instructions layout the process to fix issues with the system image, but they won't repair problems with the actual Windows 10 installation. However, after the image has been restored to a healthy state, you can use the System File Checker (SFC) to fix the current setup.
+To use the SFC command tool to repair the Windows 10 installation, use these steps:
+Open Start.
+Search for Command Prompt, right-click the top result, and select the Run as administrator option.
+Type the following command to repair the installation and press Enter:
+SFC /scannow
+
+Quick tip: If errors are found, you may want to run the command a few times (around three times) to make sure that everything was repaired correctly.
+Once you complete the steps, the System File Checker will scan and repair the system files using the known good files from the local image to fix issues with Windows 10
+
+How to scan and repair system files on Windows 10
+The following command will do a full scan of the protected system files on your computer and fix any file that are causing issues while Windows 10 is up and running.
+Use the Windows key + X keyboard shortcut to open the Power User menu and select Command Prompt (Admin), as you will need administrator permissions to run SFC.
+In the Command Prompt type the following command and press Enter:
+sfc /scannow
+
+Once the scan completes, you will see one of the following messages:
+Windows Resource Protection did not find any integrity violations: This indicates that your system doesn't have any missing or corrupted files.
+Windows Resource Protection could not perform the requested operation: This message means that there was a problem during the scan and an offline scan is required.
+Windows Resource Protection found corrupt files and successfully repaired them. Details are included in the CBS.Log %WinDir%\Logs\CBS\CBS.log: You will get this message when SFC was able to fix the problem. Now, you can move on or you can view the logs to get more details.
+Windows Resource Protection found corrupt files but was unable to fix some of them. Details are included in the CBS.Log %WinDir%\Logs\CBS\CBS.log: In this case, you'll need to repair the corrupted files manually.
+Quick Tip: You may want to run the command around three times to fix all the problems.
+How to view the details of an SFC scan
+To see the details of a System File Checker stored in the CBS.Log file, you'll need to make a readable copy on your desktop:
+Use the Windows key + X keyboard shortcut to open the Power User menu and select Command Prompt.
+Type the following command and press Enter:
+findstr /c:"[SR]" %windir%\Logs\CBS\CBS.log >"%userprofile%\Desktop\sfclogs.txt"
+
+Open the sfclogs.txt located on the desktop with Notepad. The file will contain all the details of the scanned system files and information for files that couldn't be repaired.
+
+Note: Details for SFC scans are only available when you do a scan within Windows, not when you do an offline scan on Command Prompt.
+How to scan and repair system files on Windows 10 offline
+Sometimes protected system files that need to be repaired are loaded in memory while Windows 10 is running. If this is the case, you can run SFC offline to fix your computer.
+Use the Windows key + I keyboard shortcut to open the Settings app.
+Click Update & security.
+Click Recovery.
+Under Advanced startup, click Restart now.
+
+Click Troubleshoot.
+Click Advanced options.
+Click Command Prompt to boot your computer only with Command Prompt.
+
+On reboot, you'll be prompted to enter your username and password to continue.
+Whenever you need to run SCF outside of Windows, you need to tell the utility exactly where the Windows installation files are. On Command Prompt, type the following command to understand the location of the Windows and System Reserved partitions.
+wmic logicaldisk get deviceid, volumename, description
+
+Type the following command, and press Enter:
+sfc /scannow /offbootdir=C:\ /offwindir=D:\Windows
+
+Note: We're using the /offboodir switch to specify the drive letter of the System Reserved partition, which in this case is C, and the /offwindir switch specifies the location of the Windows files, which in this case is D:\Windows.
+Keep in mind that when you boot your computer with Command Prompt, the drive letters may be different, which is why you need to use the command on step 9. However, most of the time, when working with Windows 10, D: is usually the drive letter for the installation and C: is the letter for the System Reserved partition.
+Once the scan is complete, close Command Prompt.
+Click Continue to exit and go back to Windows 10.
+How to repair system files manually on Windows 10
+If the System File Checker couldn't fix one or more files, you will need to repair them manually.
+Open the sfclogs.txt file to determine which are the corrupted files, find where they belong by doing a simple file search or use your preferred Internet search engine to get more details. Then follow the instructions below to replace the corrupted file.
+Quick Tip: You can find known good system file copies on another computer running the same version of the operating system like the one running on your PC.
+Use the Windows key + X keyboard shortcut to open the Power User menu and select Command Prompt (Admin).
+Take ownership of the corrupted system file. In the Command Prompt type the following command, and press Enter:
+takeown /f C:\Path-and-File-Name
+Note: Replace C:\Path-and-File-Name with the path and name of the corrupted file. For example, C:\Windows\System32\appraiser.dll.
+Allow full admin access to the corrupted file using the following command and press Enter:
+icacls C:\Path-and-File-Name /Grant Administrators:F
+Replace the file in question with a good copy using the following command and press Enter:
+copy C:\Path-SOURCE-and-File-Name C:\Path-DESTINATION-and-File-Name
+Note: You need to replace C:\Path-SOURCE-and-File-Name with the source path and file name of the known good file, and you also need to replace C:\Path-DESTINATION-and-File-Name with the destination path and name of the damaged file. Here's an example: copy D:\Files\appraiser.dll C:\Windows\System32\appraiser.dll.
+Type Yes and press Enter to confirm the overwrite.
+
+After replacing the file, you can type SFC /verifyonly command and press Enter in Command Prompt to verify the integrity of all the system files to see if the problem has been fixed. Alternatively, if you repaired only a few files, you can test the integrity of each file by using the sfc /VERIFYFILE=C:\Path-and-File-Name command (e.g., sfc /VERIFYFILE=C:\Windows\System32\kernel32.dll).
+Keep in mind that you're not limited to use this utility on Windows 10, SFC is a command-line tool available on previous versions of the operating system. However, you may find different features depending on the version you're running. In Command Prompt (Admin) use the sfc /? command to list the features available to you.
+
+dism.exe /image:C /cleanup-image /revertpendingactions
+
+dism.exe /online /Cleanup-Image /StartComponentCleanup
