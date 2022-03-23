@@ -300,9 +300,8 @@ the model and manufacturer.
 
                         Default {
                         
-                            Write-Host "NOTICE: Unknown ASUS GPU detected. Go grab Ethan."
-                            PAUSE
-                            EXIT
+                            Write-Host "NOTICE: Unknown ASUS GPU detected. Skipping software install."
+                            Break
                         
                         }
                     
@@ -360,9 +359,8 @@ the model and manufacturer.
 
                         Default {
                         
-                            Write-Host "NOTICE: Unknown EVGA GPU detected. Go grab Ethan."
-                            PAUSE
-                            EXIT
+                            Write-Host "NOTICE: Unknown EVGA GPU detected. Skipping software install."
+                            Break
                         
                         }
                     
@@ -404,9 +402,8 @@ the model and manufacturer.
 
                         Default {
                         
-                            Write-Host "NOTICE: Unknown MSI GPU detected. Go grab Ethan."
-                            PAUSE
-                            EXIT
+                            Write-Host "NOTICE: Unknown MSI GPU detected. Skipping software install."
+                            Break
                         
                         }
                     
@@ -445,9 +442,8 @@ the model and manufacturer.
 
                         Default {
                         
-                            Write-Host "NOTICE: Unknown PNY GPU detected. Go grab Ethan."
-                            PAUSE
-                            EXIT
+                            Write-Host "NOTICE: Unknown PNY GPU detected. Skipping software install."
+                            Break
                         
                         }
                     
@@ -485,9 +481,8 @@ the model and manufacturer.
 
                         Default {
                         
-                            Write-Host "NOTICE: Unknown ZOTAC GPU detected. Go grab Ethan."
-                            PAUSE
-                            EXIT
+                            Write-Host "NOTICE: Unknown ZOTAC GPU detected. Skipping software install."
+                            Break
                         
                         }
                     
@@ -524,9 +519,8 @@ the model and manufacturer.
 
                         Default {
                         
-                            Write-Host "NOTICE: Unknown GIGABYTE GPU detected. Go grab Ethan."
-                            PAUSE
-                            EXIT
+                            Write-Host "NOTICE: Unknown GIGABYTE GPU detected. Skipping software install."
+                            Break
                         
                         }
                     
@@ -622,8 +616,8 @@ the model and manufacturer.
 
                         Default {
                         
-                            Write-Host "NOTICE: Unknown ASUS GPU detected. Go grab Ethan."
-                            PAUSE
+                            Write-Host "NOTICE: Unknown ASUS GPU detected. Skipping software install."
+                            Break
                         
                         }
                     
