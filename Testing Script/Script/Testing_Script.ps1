@@ -21,11 +21,14 @@ $host.UI.RawUI.WindowTitle = "Testing Script"
 #Set our variables
 #$ErrorActionPreference = "SilentlyContinue"
 $applications = "C:\Applications"
+$workingDirectory = Get-Location
 $windowsEdition = (Get-WmiObject Win32_OperatingSystem).Caption
 $motherboard = (Get-WmiObject Win32_BaseBoard).Manufacturer
 $GPUs = [System.Collections.ArrayList]@(Get-PnpDevice -Class 'Display')
 $t = 0
 $f = 0
+
+CScript.exe "$workingDirectory\NumLock.vbs" //nologo
 
 #List of functions available to the user    
 function Stop-Tasks {
@@ -127,8 +130,9 @@ function Start-Tests {
         }
 
         "1" {
-        
-            Import-Csv -Path "C:\Applications\StressTest\Superposition\result_pass1_medium.csv" -Delimiter "`t" | Format-Table "TEMPERATURE *"
+            
+            [System.Collections.ArrayList]$temps = @(Import-Csv -Path "C:\Applications\StressTest\Superposition\result_pass1_medium.csv" -Delimiter "`t")
+            $temps | Measure-Object -Property TEMPERATURE* -Maximum -Average
         
         }
 
@@ -140,9 +144,7 @@ function Start-Tests {
     
     }
 
-    Start-Process -FilePath "$applications\StressTest\Prime95\results.txt"
-
-    switch (Get-Content -Path "$applications\StressTest\Prime95\results.txt" | %{$_ -match "expected"}) {
+    switch (Get-Content -Path "$applications\StressTest\Prime95\results.txt" | ForEach-Object{$_ -match "expected"}) {
     
         "True" {
 
@@ -188,12 +190,13 @@ function Start-Tests {
     Get-Selection
 
 }
-
 function Start-SP {
 
     Clear-Host
 
     Write-Host "Starting Software Prep" -InformationAction Ignore
+
+    Write-Host "Detected Windows install: '$windowsEdition'"
 
     Stop-Tasks
 
@@ -215,11 +218,11 @@ function Start-SP {
 
     Write-Host "Having tester set Microsoft Edge homepage to Ironsidecomputers.com" -InformationAction Ignore
     Set-Clipboard -Value "http://ironsidecomputers.com/"
-    Start-Process "msedge.exe"
+    Start-Process "msedge.exe" -Wait
 
     Write-Host "Removing OneDrive and Edge startup keys. They don't need to start with Windows" -InformationAction Ignore
-    Remove-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run' -Name �OneDrive'
-    Remove-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run' -Name �MicrosoftEdgeAutoLaunch_98769996E24836F99EC8617644423B4C'
+    Remove-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run' -Name 'OneDrive'
+    Remove-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run' -Name 'MicrosoftEdgeAutoLaunch_98769996E24836F99EC8617644423B4C'
 
     Write-Host "Removing Microsoft Edge link on desktop" -InformationAction Ignore
     Remove-Item -Path "$ENV:Homepath\Desktop\Microsoft Edge.lnk" -Force
@@ -534,14 +537,70 @@ function Start-QC {
     Write-Host "Removing transcript and renaming OA3 file" -InformationAction Ignore
     Rename-Item -Path "C:\OA3.xml" -NewName "WindowsKey.xml" -Force
     Remove-Item -Path "$ENV:Homepath\Desktop\Testing Launcher.lnk" -Force
-    Remove-Item -Path "C:\OA3.bin" -Force
     Stop-Transcript
-    Remove-Item -Path "C:\TestingScript.txt" -Force
+
+    $root = Get-ChildItem
+    $root.Name | ForEach-Object {
+
+        switch ($_) {
+            
+            "Applications" {
+            
+                Write-Host "Detected '$_' directory, keeping"
+
+            }
+
+            "PerfLogs" {
+            
+                Write-Host "Detected '$_' directory, keeping"
+
+            }
+
+            "Program Files" {
+
+                Write-Host "Detected '$_' directory, keeping"
+            
+            }
+
+            "Program Files (x86)" {
+
+                Write-Host "Detected '$_' directory, keeping"
+                
+            }
+
+            "Users" {
+
+                Write-Host "Detected '$_' directory, keeping"
+            
+            }
+
+            "Windows" {
+            
+                Write-Host "Detected '$_' directory, keeping"
+
+            }
+
+            "WindowsKey.xml" {
+
+                Write-Host "Detected '$_' directory, keeping"
+            
+            }
+
+            Default {
+
+                Write-Host "Detected '$_' as a directory, removing"
+                $temp = "C:\" + $_
+                Remove-Item -Path $temp -Force
+
+            }
+
+        }
+
+    }
 
     Write-Host "Removing Applications directory" -InformationAction Ignore
     Set-Location "C:\"
     Remove-Item -Path "$applications" -Recurse -Force
-    EXIT
 
 }
 
