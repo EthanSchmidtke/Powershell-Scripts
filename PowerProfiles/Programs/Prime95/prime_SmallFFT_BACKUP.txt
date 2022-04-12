@@ -1,0 +1,21 @@
+V24OptionsConverted=1
+WorkPreference=0
+V30OptionsConverted=1
+WGUID_version=2
+StressTester=1
+UsePrimenet=0
+Left=208
+Top=208
+Right=1648
+Bottom=967
+W1=0 0 1422 339 0 -1 -1 -1 -1
+W2=0 339 1422 679 0 -1 -1 -1 -1
+TortureHyperthreading=1
+MinTortureFFT=73
+MaxTortureFFT=128
+TortureMem=8
+TortureTime=6
+TortureWeak=1048576
+
+[PrimeNet]
+Debug=0

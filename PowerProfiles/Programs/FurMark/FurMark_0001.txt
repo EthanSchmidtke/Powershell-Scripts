@@ -1,0 +1,41 @@
+<->[NORMAL]#00000001#Tue Apr 12 11:01:58 2022#FurMark 1.29.0.0 is starting up...
+<->[NORMAL]#00000002#Tue Apr 12 11:01:58 2022#FurMark folder: C:\Users\MNC-AMD\Desktop\PowerProfiles\Programs\FurMark\
+<->[NORMAL]#00000003#Tue Apr 12 11:01:58 2022#Log file: C:\Users\MNC-AMD\Desktop\PowerProfiles\Programs\FurMark\FurMark_0001.txt
+<->[NORMAL]#00000004#Tue Apr 12 11:02:00 2022#CPU/System info:
+<->[NORMAL]#00000005#Tue Apr 12 11:02:00 2022#- CPU: AMD Ryzen 9 6980HX with Radeon Graphics        
+<->[NORMAL]#00000006#Tue Apr 12 11:02:01 2022#- CPU speed: 3293 MHz
+<->[NORMAL]#00000007#Tue Apr 12 11:02:01 2022#- System memory: 64780 MB
+<->[NORMAL]#00000008#Tue Apr 12 11:02:01 2022#- OS: Windows 11 64-bit build 22000
+<->[NORMAL]#00000009#Tue Apr 12 11:02:01 2022#Detecting GPUs...
+<->[NORMAL]#00000010#Tue Apr 12 11:02:01 2022#Found 2 GPUs.
+<->[NORMAL]#00000011#Tue Apr 12 11:02:01 2022#- GPU 1:  NVIDIA GeForce RTX 3080 Ti Laptop GPU
+<->[NORMAL]#00000012#Tue Apr 12 11:02:01 2022#  - Cores: 7424
+<->[NORMAL]#00000013#Tue Apr 12 11:02:01 2022#  - Memory size: 16383MB
+<->[NORMAL]#00000014#Tue Apr 12 11:02:01 2022#  - Memory type: GDDR6
+<->[NORMAL]#00000015#Tue Apr 12 11:02:01 2022#  - TDP: 0W
+<->[NORMAL]#00000016#Tue Apr 12 11:02:01 2022#  - Bus ID: 1
+<->[NORMAL]#00000017#Tue Apr 12 11:02:01 2022#  - Bios: 94.03.19.00.83
+<->[NORMAL]#00000018#Tue Apr 12 11:02:01 2022#  - Graphics driver: R512.15
+<->[NORMAL]#00000019#Tue Apr 12 11:02:01 2022#  - GPU temperature: 65.0°C
+<->[NORMAL]#00000020#Tue Apr 12 11:02:01 2022#  - True clocks - GPU clock: 1395MHz - Memory clock: 8000MHz - GPU voltage: 0.000V
+<->[NORMAL]#00000021#Tue Apr 12 11:02:01 2022#  - GPU base clock: 975MHz - GPU boost clock: 1395MHz
+<->[NORMAL]#00000022#Tue Apr 12 11:02:01 2022#  - Fan speed: -1%
+<->[NORMAL]#00000023#Tue Apr 12 11:02:01 2022#- GPU 2:  AMD Radeon(TM) Graphics
+<->[NORMAL]#00000024#Tue Apr 12 11:02:01 2022#  - Cores: 0
+<->[NORMAL]#00000025#Tue Apr 12 11:02:01 2022#  - Memory size: 512MB
+<->[NORMAL]#00000026#Tue Apr 12 11:02:01 2022#  - Memory type: DDR5
+<->[NORMAL]#00000027#Tue Apr 12 11:02:01 2022#  - TDP: 0W
+<->[NORMAL]#00000028#Tue Apr 12 11:02:01 2022#  - Bus ID: 7
+<->[NORMAL]#00000029#Tue Apr 12 11:02:01 2022#  - Bios: 032.017.000.053/113-REMBRANDT-X35 (2021/11/16 23:45)
+<->[NORMAL]#00000030#Tue Apr 12 11:02:01 2022#  - Graphics driver: 30.0.14018.1002
+<->[NORMAL]#00000031#Tue Apr 12 11:02:01 2022#WARNING: true GPU core and memory clocks for GPU 2 are not available on this platform. Only Pstate clocks will be displayed.
+<->[NORMAL]#00000032#Tue Apr 12 11:02:01 2022#  - Fan speed: -1%
+<->[NORMAL]#00000033#Tue Apr 12 11:02:01 2022#no multi-GPU support (2 physical GPUs)
+<->[NORMAL]#00000034#Tue Apr 12 11:02:01 2022#GPU monitoring thread started up ok.
+<->[NORMAL]#00000035#Tue Apr 12 11:02:01 2022#oZone3D Engine is starting up - kernel build: [v3.4.3 - Nov 12 2021 @ 18:24:44] - codename: Kantalium
+<->[NORMAL]#00000036#Tue Apr 12 11:02:01 2022#oZone3D initialization in progress...
+<->[NORMAL]#00000037#Tue Apr 12 11:02:01 2022#oZone3D - OpenGL renderer creation ok.
+<->[NORMAL]#00000038#Tue Apr 12 11:02:01 2022#o3RendererOpenGL INFO: OpenGL version: 4.6.0 NVIDIA 512.15
+<->[NORMAL]#00000039#Tue Apr 12 11:02:01 2022#o3RendererOpenGL INFO: OpenGL Shading Language (GLSL) version: 4.60 NVIDIA
+<->[NORMAL]#00000040#Tue Apr 12 11:02:01 2022#oZone3D initialization ok.
+<->[NORMAL]#00000041#Tue Apr 12 11:02:01 2022#Render thread - affinity mask set to 0

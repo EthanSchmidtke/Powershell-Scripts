@@ -1,0 +1,1 @@
+Folder for FurMark screenshots (press F9 to save a screenshot).
