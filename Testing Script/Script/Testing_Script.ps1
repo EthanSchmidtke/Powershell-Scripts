@@ -28,7 +28,8 @@ $GPUs = [System.Collections.ArrayList]@(Get-PnpDevice -Class 'Display')
 $t = 0
 $f = 0
 
-CScript.exe "$workingDirectory\NumLock.vbs" //nologo
+#Sets NumLock to 'On'
+Set-ItemProperty -Path 'Registry::HKU\.DEFAULT\Control Panel\Keyboard'  -Name "InitialKeyboardIndicators" -Value "2" -Force
 
 #List of functions available to the user    
 function Stop-Tasks {

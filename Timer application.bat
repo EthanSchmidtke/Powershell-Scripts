@@ -86,18 +86,21 @@ if defined var (
 
 :INITIALIZE
 SET /A timeLeft=%days%*86400+%hours%*3600+%minutes%*60+%seconds%
+SET /A totalTime=%timeLeft%
 
 :TIMER
 IF %timeLeft% EQU -1 (
 
+    CLS
     ECHO Time is up!
     PAUSE
 
 ) ELSE (
 
-    SET /A timeLeft=%timeLeft% - 1
-    @TITLE Timer - Time Remaining: %timeLeft%
     CLS
+    SET /A timeLeft=%timeLeft% - 1
+    @TITLE Timer - Time Remaining: %timeLeft% - Total Time: %totalTime%
+    ECHO Total Time: %totalTime%
     ECHO Time Left: %timeLeft%
     ECHO Press Ctrl+C to stop
     TIMEOUT /T 1 /NOBREAK > NUL
