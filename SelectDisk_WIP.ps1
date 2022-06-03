@@ -7,9 +7,23 @@ Write-Host "Logging to C:\SelectDisk_Transcript.txt"
 #-------------------------------------------------------------------------#
 
 [System.Collections.ArrayList]$disksAll = @(Get-PhysicalDisk | Select-Object DeviceID,FriendlyName,BusType,MediaType,@{n="Size";e={[math]::Round($_.Size/1GB,2)}})
+$selected = 0
 
 Write-Host "Currently detected drives:"
 $disksAll | Format-Table
+
+#Removes USB drives from array
+$count = 0
+$($disksAll.Clone()) | ForEach-Object {
+        
+    if ($_.BusType -eq "USB") {
+        Write-Host "Removing disk" $disksAll[$count].FriendlyName "from array, it is a USB drive"
+        $disksAll.RemoveAt($count)
+    } else {
+        $count++
+    }
+
+}
 
 #Checks if the system contains 0 or 1 drive(s)
 if ($disksAll.Count -lt 2) {
@@ -27,23 +41,11 @@ if ($disksAll.Count -lt 2) {
 
             Write-Host "System contains 1 drive, selecting for install"
             $TSenv.Value("TargetDisk") = $disksAll.DeviceID
-            EXIT 0
+            $selected = 1
+            Break
 
         }
 
-    }
-
-}
-
-#Removes USB drives from array
-$count = 0
-$($disksAll.Clone()) | ForEach-Object {
-        
-    if ($_.BusType -eq "USB") {
-        Write-Host "Removing disk" $disksAll[$count].FriendlyName "from array, it is a USB drive"
-        $disksAll.RemoveAt($count)
-    } else {
-        $count++
     }
 
 }
@@ -68,67 +70,87 @@ $TSenv.Value("TargetDisk") = $disksAll.DeviceID
 #>
 
 #NVMe Drive Check
-$count = 0
-:upHere switch (($disksAll.BusType -eq "NVMe").Count) {
+if ($selected -eq 0) {
+    $count = 0
+    :upHere switch (($disksAll.BusType -eq "NVMe").Count) {
 
-    "1" {
+        "1" {
 
-        Write-Host "One NVMe drive detected. Selecting for install."
-    
-        $($disksAll.Clone()) | ForEach-Object {
-            
-            if ($_.BusType -eq "NVMe") {
-                $TSenv.Value("TargetDisk") = $disksAll[$count].DeviceID
-                Write-Host "Removing disk" $disksAll[$count].FriendlyName "from array - Selecting for install"
-                $disksAll.RemoveAt($count)
-                Break upHere
-            } else {
-                $count++
-            }
+            Write-Host "One NVMe drive detected. Selecting for install."
         
-        }
-
-    }
-
-    Default {
-
-        if (($disksAll.BusType -eq "NVMe").Count -ge 2) {
-
-            [System.Collections.ArrayList]$disksTemp = @()
             $($disksAll.Clone()) | ForEach-Object {
-            
-                if ($_.BusType -eq "NVMe") {
-                    $disksTemp += $_[$count]
-                }
-                $count++
-            
-            }
-
-            $max = ($disksTemp | Measure-Object -Property Size -Maximum).Maximum
-            $disksTemp | Where-Object {
                 
-                $_.Size -eq $max
+                if ($_.BusType -eq "NVMe") {
+                    $TSenv.Value("TargetDisk") = $disksAll[$count].DeviceID
+                    Write-Host "Removing disk" $disksAll[$count].FriendlyName "from array - Selecting for install"
+                    $disksAll.RemoveAt($count)
+                    Break upHere
+                } else {
+                    $count++
+                }
             
             }
-
-            Break upHere
 
         }
 
-        Write-Host "No NVMe drives detected, checking for SSDs"
-        Break
+        Default {
+
+            if (($disksAll.BusType -eq "NVMe").Count -ge 2) {
+
+                [System.Collections.ArrayList]$disksTemp = @()
+                $($disksAll.Clone()) | ForEach-Object {
+                
+                    if ($_.BusType -eq "NVMe") {
+                        $disksTemp += $_[$count]
+                        Write-Host "Removing disk" $disksAll[$count].FriendlyName "from main array and moving to temp array for size comparison"
+                        $disksAll.RemoveAt($count)
+                    }
+                    $count++
+                
+                }
+
+                $minimum = ($disksTemp | Measure-Object -Property Size -Minimum).Minimum
+                $installDrive = $disksTemp | Where-Object {
+                    
+                    $_.Size -eq $minimum
+                
+                }
+
+                $disksTemp.RemoveAt([array]::indexof($disksTemp,$installDrive))
+                $TSenv.Value("TargetDisk") = $installDrive.DeviceID
+                $selected = 1
+                Write-Host "Selecting" $installDrive.FriendlyName "for install. This is the smallest NVMe available."
+
+                Write-Host "Adding disks from temp array back to main array"
+                Write-Host "Disks being added:" $disksTemp.FriendlyName
+                $disksAll += $disksTemp
+
+                Break upHere
+
+            }
+
+            Write-Host "No NVMe drives detected, checking for SSDs"
+            Break
+
+        }
 
     }
+}
+
+
+#SSD Check
+if ($selected -eq 0) {
+    $count = 0
 
 }
 
-#SSD Check
-$count = 0
 
 
 #HDD Check
-$count = 0
+if ($selected -eq 0) {
+    $count = 0
 
+}
 
 #Formats/Partitions the remaining disk(s)
 $count = 0
