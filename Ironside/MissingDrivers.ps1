@@ -1,34 +1,42 @@
-#Determine where to do the logging 
-$tsenv = New-Object -COMObject Microsoft.SMS.TSEnvironment
-$logPath = $tsenv.Value("LogPath")  
-$logFile = "$logPath\$($myInvocation.MyCommand).log"
+#Gets motherboard manufacturer
+$mobo = Get-WmiObject -Class Win32_BaseBoard
+switch ($mobo.Manufacturer) {
 
-#Start the logging 
-Start-Transcript $logFile
-Write-Host "Logging to $logFile"
+    "ASUSTeK COMPUTER INC." {
 
-#For formatting:
+        $mobo.Manufacturer = "ASUS"
+        Write-Host "Detected" $mobo.Manufacturer "as motherboard manufacturer."
+        Write-Host "Detected" $mobo.Product "as motherboard product name."
+
+    }
+
+    Default {
+
+        Write-Host "Detected" $mobo.Manufacturer "as motherboard manufacturer. Short-name not currently known."
+        Write-Host "Detected" $mobo.Product "as motherboard product name."
+
+    }
+
+}
+
+#Result formatting
 $result = @{Expression = {$_.Name}; Label = "Device Name"}, @{Expression = {$_.ConfigManagerErrorCode} ; Label = "Status Code" }, @{Expression = {$_.DeviceID} ; Label = "Device ID" }
 
 #Checks for devices whose ConfigManagerErrorCode value is greater than 0, i.e has a problem device.
 Get-WmiObject -Class Win32_PnpEntity | Where-Object {$_.ConfigManagerErrorCode -gt 0 } | Format-Table $result -AutoSize
-#Put at the end to have results exported to a CSV file.
-#| Export-CSV C:\Drivers.csv
-
-#Gets motherboard manufacturer
-$mobo = Get-WmiObject -Class Win32_BaseBoard | Select-Object Manufacturer
 
 if (Get-WmiObject -Class Win32_PnpEntity | Where-Object {$_.ConfigManagerErrorCode -gt 0 }) {
 
-    Write-Host "There are missing drivers, resolve and add to deployment."
-    $mobo
-    $result
-    PAUSE
+    Write-Host "There are missing drivers, please resolve and add to deployment."
+    Pause
 
 } else {
 
-    Write-Host "There are no missing drivers."
+    Write-Host "There are no missing drivers. System is good to go."
+    Start-Sleep -Seconds 5
+    EXIT 0
 
 }
 
-Stop-Transcript
+#Put at the end to have results exported to a CSV file.
+#| Export-CSV C:\Drivers.csv
